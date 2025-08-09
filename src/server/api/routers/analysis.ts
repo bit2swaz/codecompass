@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { GitService } from "../services/git.service";
+import { StaticAnalyzerService } from "../services/staticAnalyzer.service";
 
 export const analysisRouter = createTRPCRouter({
   runAnalysis: protectedProcedure
@@ -11,21 +12,22 @@ export const analysisRouter = createTRPCRouter({
 
       let repoPath: string | null = null;
       try {
-        // 2. Clone the repo
         repoPath = await GitService.cloneRepo(input.repoUrl);
 
-        // --- Static Analysis and AI logic will go here ---
+        // 2. Run the static analysis
+        const opportunities = await StaticAnalyzerService.analyzeRepo(repoPath);
+        console.log("Opportunities found:", opportunities);
+
+        // --- AI logic will go here next ---
 
         return {
           message: "Analysis completed successfully!",
-          repo: input.repoUrl,
+          opportunities: opportunities, // 3. Return the results
         };
       } catch (error) {
         console.error("Analysis failed:", error);
-        // Ensure we re-throw the error so the client knows it failed
         throw new Error("Analysis failed.", { cause: error });
       } finally {
-        // 3. Always clean up the repo afterwards
         if (repoPath) {
           await GitService.cleanup(repoPath);
         }
