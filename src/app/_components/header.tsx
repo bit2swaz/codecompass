@@ -28,7 +28,7 @@ export default async function Header() {
               href="/api/auth/signin"
               className="rounded-full bg-white/10 px-5 py-2 font-semibold no-underline transition hover:bg-white/20"
             >
-              Sign in
+              Sign in with GitHub
             </Link>
           )}
         </div>
