@@ -3,6 +3,7 @@ import { type Metadata } from "next";
 import { Geist } from "next/font/google";
 import { TRPCReactProvider } from "~/trpc/react";
 import Header from "./_components/header";
+import AuthProvider from "./_components/auth-provider";
 
 export const metadata: Metadata = {
   title: "CodeCompass",
@@ -23,10 +24,12 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${geist.variable} bg-gray-900`}>
       <body>
-        <TRPCReactProvider>
-          <Header />
-          <main>{children}</main>
-        </TRPCReactProvider>
+        <AuthProvider>
+          <TRPCReactProvider>
+            <Header />
+            <main>{children}</main>
+          </TRPCReactProvider>
+        </AuthProvider>
       </body>
     </html>
   );
