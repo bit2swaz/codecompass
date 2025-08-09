@@ -1,4 +1,9 @@
-import fs from "fs/promises";
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-redundant-type-constituents */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { promises as fs } from "fs";
+import { statSync } from "fs";
 import path from "path";
 import * as babelParser from "@babel/parser";
 import { type File } from "@babel/types";
@@ -95,6 +100,6 @@ export class StaticAnalyzerService {
         return fullPath;
       }),
     );
-    return files.flat().filter((file) => !fs.statSync(file).isDirectory());
+    return files.flat().filter((file) => !statSync(file).isDirectory());
   }
 }
