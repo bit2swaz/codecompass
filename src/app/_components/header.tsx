@@ -1,8 +1,10 @@
-import Link from "next/link";
-import { api } from "~/trpc/server";
+"use client";
 
-export default async function Header() {
-  const session = await api.auth.getSession();
+import Link from "next/link";
+import { signIn, signOut, useSession } from "next-auth/react";
+
+export default function Header() {
+  const { data: session } = useSession();
 
   return (
     <header className="border-b border-gray-700 bg-gray-900">
@@ -16,20 +18,20 @@ export default async function Header() {
               <span className="text-gray-300">
                 Welcome, {session.user.name}
               </span>
-              <Link
-                href="/api/auth/signout"
+              <button
+                onClick={() => signOut()}
                 className="rounded-full bg-white/10 px-5 py-2 font-semibold no-underline transition hover:bg-white/20"
               >
                 Sign out
-              </Link>
+              </button>
             </div>
           ) : (
-            <Link
-              href="/api/auth/signin"
+            <button
+              onClick={() => signIn("github")}
               className="rounded-full bg-white/10 px-5 py-2 font-semibold no-underline transition hover:bg-white/20"
             >
               Sign in with GitHub
-            </Link>
+            </button>
           )}
         </div>
       </nav>
