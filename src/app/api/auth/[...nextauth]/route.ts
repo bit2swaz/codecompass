@@ -22,6 +22,10 @@ const authConfig: NextAuthConfig = {
       return session;
     },
   },
+  pages: {
+    signIn: "/auth/signin",
+    error: "/auth/error",
+  },
 };
 
 const handler = NextAuth(authConfig);
