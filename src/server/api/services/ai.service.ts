@@ -6,9 +6,9 @@ import {
 } from "@google/generative-ai";
 import { env } from "~/env";
 
-// A basic type for the opportunities our Static Analyzer finds
+// 1. Update the Opportunity type to include our new type
 type Opportunity = {
-  type: "HARDCODED_SECRET";
+  type: "HARDCODED_SECRET" | "PROP_DRILLING";
   file: string;
   line: number;
   recommendation: string;
@@ -17,9 +17,6 @@ type Opportunity = {
 export class AiService {
   private static instance: GoogleGenerativeAI;
 
-  /**
-   * Initializes and returns a singleton instance of the GoogleGenerativeAI client.
-   */
   private static getInstance(): GoogleGenerativeAI {
     if (!this.instance) {
       this.instance = new GoogleGenerativeAI(env.GEMINI_API_KEY);
@@ -27,11 +24,6 @@ export class AiService {
     return this.instance;
   }
 
-  /**
-   * Generates a detailed, user-friendly insight based on a found opportunity.
-   * @param opportunity The raw opportunity data from the Static Analyzer.
-   * @returns A structured insight object.
-   */
   public static async generateInsight(
     opportunity: Opportunity,
   ): Promise<object> {
@@ -40,6 +32,7 @@ export class AiService {
 
     const prompt = this.createPrompt(opportunity);
 
+    // ... same generationConfig and safetySettings ...
     const generationConfig = {
       temperature: 0.3,
       topK: 1,
@@ -52,7 +45,6 @@ export class AiService {
         category: HarmCategory.HARM_CATEGORY_HARASSMENT,
         threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
       },
-      // ... other safety settings ...
     ];
 
     const result = await model.generateContent({
@@ -62,39 +54,44 @@ export class AiService {
     });
 
     const responseText = result.response.text();
-    // Clean up the response and parse it as JSON
     const jsonString = responseText.replace(/```json|```/g, "").trim();
     return JSON.parse(jsonString) as object;
   }
 
-  /**
-   * Creates a detailed prompt for the Gemini API.
-   * @param opportunity The raw opportunity data.
-   * @returns A string prompt.
-   */
+  // 2. Update the createPrompt method to handle different types
   private static createPrompt(opportunity: Opportunity): string {
-    // This is where the magic happens. A well-crafted prompt is key.
-    return `
+    const baseInstruction = `
       You are CodeCompass, an expert code reviewer providing helpful feedback to a junior developer.
       An automated scan found the following issue:
       - Issue Type: ${opportunity.type}
       - File: ${opportunity.file}
-      - Line: ${opportunity.line}
 
-      Your task is to respond with a JSON object with three keys: "title", "problem", and "solution".
-
-      1.  "title": A short, clear title for this issue. (e.g., "Hardcoded Secret Detected")
-      2.  "problem": A simple, one-paragraph explanation of what the problem is and why it's a security risk. Use an analogy if possible. Keep the tone encouraging.
-      3.  "solution": A brief, step-by-step explanation of how to fix this using environment variables (.env file).
-
-      Example response format:
-      \`\`\`json
-      {
-        "title": "Hardcoded Secret Detected",
-        "problem": "It looks like a sensitive key or secret might be written directly into your code. Think of this like leaving your house key under the doormat – anyone who finds it can get in. Storing secrets in your code makes them vulnerable if your code is ever shared or becomes public.",
-        "solution": "The best practice is to use environment variables. 1. Create a file named '.env' in your project's root directory. 2. Add your secret to this file like this: 'API_KEY=your_secret_value_here'. 3. Make sure '.env' is listed in your '.gitignore' file. 4. Access the key in your code using 'process.env.API_KEY'."
-      }
-      \`\`\`
+      Your task is to respond ONLY with a valid JSON object with three keys: "title", "problem", and "solution".
+      Keep the tone encouraging and use an analogy for the "problem" section.
     `;
+
+    switch (opportunity.type) {
+      case "HARDCODED_SECRET":
+        return `
+          ${baseInstruction}
+          
+          For the "title", use "Hardcoded Secret Detected".
+          For the "problem", explain the security risk of storing secrets directly in code. The analogy is leaving your house key under the doormat.
+          For the "solution", explain how to use a '.env' file with 'process.env.VARIABLE_NAME'.
+        `;
+
+      case "PROP_DRILLING":
+        return `
+          ${baseInstruction}
+
+          For the "title", use "Potential Prop Drilling Detected".
+          For the "problem", explain that passing props through many intermediate components can make code hard to maintain. The analogy is like playing a game of telephone where the message can get confusing.
+          For the "solution", briefly recommend using React's Context API or a state management library like Zustand to provide data directly to the components that need it.
+        `;
+
+      default:
+        // This will help us catch any unhandled opportunity types
+        throw new Error("Unhandled opportunity type for AI prompt generation.");
+    }
   }
 }
