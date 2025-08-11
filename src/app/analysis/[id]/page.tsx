@@ -13,7 +13,8 @@ export default function AnalysisPage({ params }: AnalysisPageProps) {
   const { data: analysis, error } = api.analysis.getAnalysisById.useQuery(
     { id: params.id },
     {
-      refetchInterval: (data) => (data?.status === "PENDING" ? 2000 : false),
+      refetchInterval: (query) =>
+        query.state.data?.status === "PENDING" ? 2000 : false,
     },
   );
 
