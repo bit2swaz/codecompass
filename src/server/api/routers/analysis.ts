@@ -55,4 +55,21 @@ export const analysisRouter = createTRPCRouter({
         }
       }
     }),
+
+  getAnalysisById: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const analysis = await db.analysis.findFirst({
+        where: {
+          id: input.id,
+          userId: ctx.session.user.id, // Ensure user can only see their own analysis
+        },
+      });
+
+      if (!analysis) {
+        throw new Error("Analysis not found");
+      }
+
+      return analysis;
+    }),
 });
