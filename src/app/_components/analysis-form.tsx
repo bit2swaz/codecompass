@@ -1,16 +1,16 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { api } from "~/trpc/react";
 
 export default function AnalysisForm() {
   const [repoUrl, setRepoUrl] = useState("");
+  const router = useRouter();
 
   const runAnalysisMutation = api.analysis.runAnalysis.useMutation({
     onSuccess: (data) => {
-      console.log("Analysis successful!", data);
-      // We will handle displaying results later
-      alert(`Success! Found ${data.opportunities.length} opportunities.`);
+      router.push(`/analysis/${data.analysisId}`);
     },
     onError: (error) => {
       console.error("Analysis failed:", error);
