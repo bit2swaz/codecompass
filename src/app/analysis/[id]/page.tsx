@@ -1,6 +1,7 @@
 "use client";
 
 import { api } from "~/trpc/react";
+import InsightCard from "~/app/_components/insight-card";
 
 type AnalysisPageProps = {
   params: {
@@ -9,12 +10,10 @@ type AnalysisPageProps = {
 };
 
 export default function AnalysisPage({ params }: AnalysisPageProps) {
-  // This query will refetch data every 2 seconds until it succeeds
   const { data: analysis, error } = api.analysis.getAnalysisById.useQuery(
     { id: params.id },
     {
-      refetchInterval: (query) =>
-        query.state.data?.status === "PENDING" ? 2000 : false,
+      refetchInterval: (data) => (data?.status === "PENDING" ? 2000 : false),
     },
   );
 
@@ -26,25 +25,49 @@ export default function AnalysisPage({ params }: AnalysisPageProps) {
     );
   }
 
+  // Define a type for our results for type safety
+  type Insight = {
+    title: string;
+    problem: string;
+    solution: string;
+  };
+
+  const results = analysis?.results as Insight[] | null;
+
   return (
     <div className="container mx-auto mt-16 text-white">
-      <h1 className="text-center text-4xl font-bold">Analysis Results</h1>
-      <p className="text-center text-lg text-gray-400">
-        Status:{" "}
-        <span className="font-semibold text-purple-400">
-          {analysis?.status ?? "LOADING..."}
-        </span>
-      </p>
+      <div className="text-center">
+        <h1 className="text-4xl font-bold">Analysis Results</h1>
+        <p className="text-lg text-gray-400">
+          Status:{" "}
+          <span className="font-semibold text-purple-400">
+            {analysis?.status ?? "LOADING..."}
+          </span>
+        </p>
+      </div>
 
-      {/* We will render the actual results here in the next step */}
-      {analysis?.status === "COMPLETED" && (
-        <div className="mt-8 rounded-lg bg-gray-800 p-6">
-          <h2 className="text-2xl font-bold">Opportunities Found:</h2>
-          <pre className="mt-4 overflow-x-auto rounded bg-gray-900 p-4 text-sm">
-            {JSON.stringify(analysis.results, null, 2)}
-          </pre>
-        </div>
-      )}
+      <div className="mx-auto mt-8 max-w-4xl">
+        {analysis?.status === "PENDING" && (
+          <div className="text-center">
+            {/* You can add a spinner or loading animation here */}
+            <p className="text-xl">Analyzing your repository, please wait...</p>
+          </div>
+        )}
+
+        {analysis?.status === "COMPLETED" && (
+          <div>
+            {results && results.length > 0 ? (
+              results.map((insight, index) => (
+                <InsightCard key={index} insight={insight} />
+              ))
+            ) : (
+              <p className="text-center text-gray-400">
+                No opportunities for improvement were found. Great job!
+              </p>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
