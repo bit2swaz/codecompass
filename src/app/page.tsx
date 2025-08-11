@@ -1,5 +1,5 @@
+import Link from "next/link";
 import { api } from "~/trpc/server";
-import AnalysisForm from "./_components/analysis-form";
 
 export default async function Home() {
   const session = await api.auth.getSession();
@@ -13,13 +13,20 @@ export default async function Home() {
           Your Learning Path Should Be, Too.
         </span>
       </h1>
+      <p className="max-w-3xl text-center text-2xl text-gray-300">
+        Stop guessing what to learn next. CodeCompass analyzes your GitHub
+        projects to create a personalized curriculum that closes your real-world
+        skill gaps.
+      </p>
 
-      {session?.user ? (
-        <AnalysisForm />
-      ) : (
-        <p className="max-w-3xl text-center text-2xl text-gray-300">
-          Sign in with GitHub above to analyze your first repository.
-        </p>
+      {/* This button will now lead to the dashboard */}
+      {session?.user && (
+        <Link
+          href="/dashboard"
+          className="rounded-full bg-purple-600 px-10 py-3 font-semibold text-white no-underline transition hover:bg-purple-500"
+        >
+          Go to Your Dashboard
+        </Link>
       )}
     </div>
   );
