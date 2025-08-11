@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 "use client";
 
 import { api } from "~/trpc/react";
@@ -16,7 +13,7 @@ export default function AnalysisPage({ params }: AnalysisPageProps) {
   const { data: analysis, error } = api.analysis.getAnalysisById.useQuery(
     { id: params.id },
     {
-      refetchInterval: (query: { state: { data: { status: string } } }) =>
+      refetchInterval: (query) =>
         query.state.data?.status === "PENDING" ? 2000 : false,
     },
   );
