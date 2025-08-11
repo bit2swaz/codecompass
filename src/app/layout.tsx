@@ -2,8 +2,9 @@ import "~/styles/globals.css";
 import { type Metadata } from "next";
 import { Geist } from "next/font/google";
 import { TRPCReactProvider } from "~/trpc/react";
-import Header from "./_components/header";
 import AuthProvider from "./_components/auth-provider";
+import Navbar from "./_components/navbar";
+import Footer from "./_components/footer";
 
 export const metadata: Metadata = {
   title: "CodeCompass",
@@ -26,8 +27,9 @@ export default function RootLayout({
       <body>
         <AuthProvider>
           <TRPCReactProvider>
-            <Header />
-            <main>{children}</main>
+            <Navbar />
+            <main className="flex-grow">{children}</main>
+            <Footer />
           </TRPCReactProvider>
         </AuthProvider>
       </body>
