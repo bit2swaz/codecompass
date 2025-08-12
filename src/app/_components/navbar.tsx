@@ -5,6 +5,7 @@ import Link from "next/link";
 import { signIn, signOut, useSession } from "next-auth/react";
 import { Fragment } from "react";
 import { Menu, Transition } from "@headlessui/react";
+import { motion } from "framer-motion";
 
 // Helper function to combine class names
 function classNames(...classes: string[]) {
@@ -15,34 +16,47 @@ export default function Navbar() {
   const { data: session } = useSession();
 
   const navItems = [
+    { name: "Features", href: "#" },
     { name: "Pricing", href: "#", disabled: true },
     { name: "Docs", href: "#", disabled: true },
-    { name: "Roadmap", href: "#", disabled: true },
+    { name: "Blog", href: "#", disabled: true },
   ];
 
   return (
-    <header className="sticky top-0 z-50 border-b border-gray-700/50 bg-gray-900/80 backdrop-blur">
-      <nav className="container mx-auto flex items-center justify-between p-4 text-white">
-        {/* Logo and Nav Links */}
-        <div className="flex items-center gap-8">
-          <Link href="/" className="text-2xl font-bold text-purple-400">
+    <header className="sticky top-0 z-50 border-b border-gray-700/50 bg-gray-900/80 backdrop-blur-lg">
+      <nav className="container mx-auto flex h-16 items-center justify-between px-4 text-white">
+        {/* Left: Logo */}
+        <div className="flex-1">
+          <Link
+            href="/"
+            className="text-2xl font-bold text-purple-400 transition-colors hover:text-purple-300"
+          >
             CodeCompass
           </Link>
-          <div className="hidden items-center gap-6 md:flex">
-            {navItems.map((item) => (
-              <span
-                key={item.name}
-                className="cursor-not-allowed text-sm font-medium text-gray-500"
-                title="Coming Soon!"
-              >
-                {item.name}
-              </span>
-            ))}
-          </div>
         </div>
 
-        {/* Auth Buttons / User Menu */}
-        <div>
+        {/* Center: Navigation Links */}
+        <div className="hidden flex-1 items-center justify-center gap-6 md:flex">
+          {navItems.map((item) => (
+            <Link
+              key={item.name}
+              href={item.disabled ? "" : item.href}
+              className={classNames(
+                item.disabled
+                  ? "cursor-not-allowed text-gray-500"
+                  : "text-gray-300 transition-colors hover:text-white",
+                "text-sm font-medium",
+              )}
+              title={item.disabled ? "Coming Soon!" : ""}
+              onClick={(e) => item.disabled && e.preventDefault()}
+            >
+              {item.name}
+            </Link>
+          ))}
+        </div>
+
+        {/* Right: Auth Buttons / User Menu */}
+        <div className="flex flex-1 items-center justify-end">
           {session?.user ? (
             <Menu as="div" className="relative ml-3">
               <div>
@@ -83,6 +97,19 @@ export default function Navbar() {
                   </Menu.Item>
                   <Menu.Item>
                     {({ active }) => (
+                      <span
+                        className={classNames(
+                          active ? "bg-gray-700" : "",
+                          "block cursor-not-allowed px-4 py-2 text-sm text-gray-500",
+                        )}
+                        title="Coming Soon!"
+                      >
+                        Settings
+                      </span>
+                    )}
+                  </Menu.Item>
+                  <Menu.Item>
+                    {({ active }) => (
                       <button
                         onClick={() => signOut()}
                         className={classNames(
@@ -98,12 +125,14 @@ export default function Navbar() {
               </Transition>
             </Menu>
           ) : (
-            <button
-              onClick={() => signIn("github")}
-              className="rounded-md bg-purple-600 px-5 py-2 text-sm font-semibold text-white transition hover:bg-purple-500"
-            >
-              Sign In
-            </button>
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <button
+                onClick={() => signIn("github")}
+                className="rounded-md bg-purple-600 px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-purple-600/20 transition hover:bg-purple-500"
+              >
+                Sign In
+              </button>
+            </motion.div>
           )}
         </div>
       </nav>
