@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
@@ -240,6 +241,67 @@ export default function LandingPage({ session }: { session: any }) {
                 </button>
               </motion.div>
             </AnimatePresence>
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials Section */}
+      <section
+        id="testimonials"
+        className="border-t border-gray-800 bg-gray-900/50 py-24"
+      >
+        <div className="container mx-auto px-4 text-center">
+          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
+            Don&apos;t Just Take Our Word For It
+          </h2>
+          <p className="mx-auto mt-4 max-w-2xl text-lg text-gray-400">
+            Developers are saving time and leveling up faster than ever before.
+          </p>
+          <div className="mt-16 grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
+            {[
+              {
+                name: "Sarah L.",
+                role: "Frontend Developer",
+                text: "I finally understood React Hooks properly because CodeCompass gave me a challenge related to my own project. Mind-blowing!",
+                avatar: "https://avatar.vercel.sh/sarah.png",
+              },
+              {
+                name: "Mike R.",
+                role: "Backend Engineer",
+                text: "This is the first learning tool that doesn't feel like a chore. The analysis found an N+1 query I'd missed for weeks.",
+                avatar: "https://avatar.vercel.sh/mike.png",
+              },
+              {
+                name: "Jenna K.",
+                role: "Full-Stack Developer",
+                text: "As a team lead, this is a game-changer. I can finally get a real sense of where my team's strengths and weaknesses are.",
+                avatar: "https://avatar.vercel.sh/jenna.png",
+              },
+            ].map((testimonial) => (
+              <motion.div
+                key={testimonial.name}
+                className="flex flex-col rounded-xl border border-gray-800 bg-gray-900 p-8"
+                initial={{ opacity: 0, y: 30 }}
+                whileInView="visible"
+                viewport={{ once: true }}
+                transition={{ duration: 0.5 }}
+              >
+                <p className="flex-grow text-gray-300">
+                  &quot;{testimonial.text}&quot;
+                </p>
+                <div className="mt-6 flex items-center">
+                  <img
+                    className="h-12 w-12 rounded-full"
+                    src={testimonial.avatar}
+                    alt={testimonial.name}
+                  />
+                  <div className="ml-4 text-left">
+                    <p className="font-semibold">{testimonial.name}</p>
+                    <p className="text-sm text-gray-400">{testimonial.role}</p>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>

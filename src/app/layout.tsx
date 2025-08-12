@@ -5,6 +5,7 @@ import { TRPCReactProvider } from "~/trpc/react";
 import AuthProvider from "./_components/auth-provider";
 import Navbar from "./_components/navbar";
 import Footer from "./_components/footer";
+import ScrollToTopButton from "./_components/scroll-to-top-button";
 
 export const metadata: Metadata = {
   title: "CodeCompass",
@@ -24,11 +25,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${geist.variable} bg-gray-900`}>
-      <body>
+      <body className="flex min-h-screen flex-col">
         <AuthProvider>
           <TRPCReactProvider>
             <Navbar />
             <main className="flex-grow">{children}</main>
+            <ScrollToTopButton />
             <Footer />
           </TRPCReactProvider>
         </AuthProvider>

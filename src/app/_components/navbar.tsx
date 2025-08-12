@@ -18,8 +18,24 @@ export default function Header() {
     { name: "Home", href: "/" },
     { name: "Features", href: "/#features" },
     { name: "Pricing", href: "/#pricing" },
+    { name: "Testimonials", href: "/#testimonials" },
     { name: "Dashboard", href: "/dashboard" },
   ];
+
+  const handleScroll = (
+    e: React.MouseEvent<HTMLAnchorElement, MouseEvent>,
+    href: string,
+  ) => {
+    // Handle smooth scroll for anchor links on the same page
+    if (href.startsWith("/#")) {
+      e.preventDefault();
+      const targetId = href.replace("/#", "");
+      const elem = document.getElementById(targetId);
+      elem?.scrollIntoView({
+        behavior: "smooth",
+      });
+    }
+  };
 
   return (
     <header className="sticky top-0 z-50 border-b border-gray-700/50 bg-gray-900/80 backdrop-blur-lg">
@@ -40,6 +56,7 @@ export default function Header() {
             <Link
               key={item.name}
               href={item.href}
+              onClick={(e) => handleScroll(e, item.href)}
               className="text-sm font-medium text-gray-300 transition-colors hover:text-white"
             >
               {item.name}
