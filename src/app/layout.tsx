@@ -10,7 +10,7 @@ import ScrollToTopButton from "./_components/scroll-to-top-button";
 export const metadata: Metadata = {
   title: "CodeCompass",
   description: "Your personalized learning path",
-  icons: [{ rel: "icon", url: "/favicon.ico" }],
+  icons: [{ rel: "icon", url: "/favicon.svg" }],
 };
 
 const geist = Geist({
