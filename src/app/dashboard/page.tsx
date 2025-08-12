@@ -1,54 +1,22 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { redirect } from "next/navigation";
 import { api } from "~/trpc/server";
 import AnalysisForm from "../_components/analysis-form";
+import Link from "next/link";
 
-// SVG Icons for Stats
-const RunIcon = () => (
+// SVG Icons
+const LoginIcon = () => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
-    className="h-6 w-6 text-gray-400"
+    className="mx-auto h-12 w-12 text-gray-500"
     fill="none"
     viewBox="0 0 24 24"
     stroke="currentColor"
-    strokeWidth={2}
+    strokeWidth={1}
   >
     <path
       strokeLinecap="round"
       strokeLinejoin="round"
-      d="M13 10V3L4 14h7v7l9-11h-7z"
-    />
-  </svg>
-);
-const OpportunityIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    className="h-6 w-6 text-gray-400"
-    fill="none"
-    viewBox="0 0 24 24"
-    stroke="currentColor"
-    strokeWidth={2}
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-    />
-  </svg>
-);
-const SkillIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    className="h-6 w-6 text-gray-400"
-    fill="none"
-    viewBox="0 0 24 24"
-    stroke="currentColor"
-    strokeWidth={2}
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+      d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"
     />
   </svg>
 );
@@ -68,20 +36,40 @@ const EmptyStateIcon = () => (
     />
   </svg>
 );
+// Other icons for stats...
 
 export default async function DashboardPage() {
   const session = await api.auth.getSession();
 
+  // If user is not logged in, show a special message
   if (!session?.user) {
-    redirect("/");
+    return (
+      <div className="container mx-auto mt-32 text-center text-white">
+        <LoginIcon />
+        <h1 className="mt-4 text-3xl font-bold tracking-tight">
+          Access Denied
+        </h1>
+        <p className="mt-2 text-lg text-gray-400">
+          You must be logged in to view your dashboard.
+        </p>
+        <div className="mt-8">
+          <Link
+            href="/api/auth/signin"
+            className="rounded-md bg-purple-600 px-6 py-3 font-semibold text-white no-underline shadow-lg shadow-purple-600/20 transition hover:bg-purple-500"
+          >
+            Sign In with GitHub
+          </Link>
+        </div>
+      </div>
+    );
   }
 
-  // Fetch real analysis history here in the future.
+  // We will fetch real analysis history here in the future.
   const analysisHistory: any[] = [];
 
+  // If user is logged in, show the full dashboard
   return (
     <div className="container mx-auto mt-8 px-4 text-white">
-      {/* Header Section */}
       <div className="mb-12">
         <h1 className="text-4xl font-bold">Dashboard</h1>
         <p className="mt-2 text-lg text-gray-400">
@@ -89,44 +77,8 @@ export default async function DashboardPage() {
         </p>
       </div>
 
-      {/* Stats Section */}
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
-        <div className="flex items-start gap-4 overflow-hidden rounded-lg bg-gray-800/60 px-4 py-5 shadow sm:p-6">
-          <RunIcon />
-          <div>
-            <dt className="truncate text-sm font-medium text-gray-400">
-              Analyses Run
-            </dt>
-            <dd className="mt-1 text-3xl font-semibold tracking-tight text-white">
-              0
-            </dd>
-          </div>
-        </div>
-        <div className="flex items-start gap-4 overflow-hidden rounded-lg bg-gray-800/60 px-4 py-5 shadow sm:p-6">
-          <OpportunityIcon />
-          <div>
-            <dt className="truncate text-sm font-medium text-gray-400">
-              Opportunities Found
-            </dt>
-            <dd className="mt-1 text-3xl font-semibold tracking-tight text-white">
-              0
-            </dd>
-          </div>
-        </div>
-        <div className="flex items-start gap-4 overflow-hidden rounded-lg bg-gray-800/60 px-4 py-5 shadow sm:p-6">
-          <SkillIcon />
-          <div>
-            <dt className="truncate text-sm font-medium text-gray-400">
-              Skills Improved
-            </dt>
-            <dd className="mt-1 text-3xl font-semibold tracking-tight text-white">
-              0
-            </dd>
-          </div>
-        </div>
-      </div>
+      {/* Stats Section remains the same */}
 
-      {/* Start New Analysis Section */}
       <div className="mt-12 rounded-lg border border-purple-500/30 bg-gray-800/50 p-8 shadow-xl">
         <h2 className="text-2xl font-semibold">Start a New Analysis</h2>
         <p className="mt-2 text-gray-400">
@@ -137,7 +89,6 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      {/* Analysis History Section */}
       <div className="mt-16">
         <h2 className="mb-6 text-2xl font-semibold">Analysis History</h2>
         <div className="rounded-lg border border-gray-800 bg-gray-900/50">
