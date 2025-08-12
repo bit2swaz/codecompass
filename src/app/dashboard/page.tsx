@@ -3,7 +3,55 @@ import { redirect } from "next/navigation";
 import { api } from "~/trpc/server";
 import AnalysisForm from "../_components/analysis-form";
 
-// SVG Icon for the empty state
+// SVG Icons for Stats
+const RunIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    className="h-6 w-6 text-gray-400"
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={2}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M13 10V3L4 14h7v7l9-11h-7z"
+    />
+  </svg>
+);
+const OpportunityIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    className="h-6 w-6 text-gray-400"
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={2}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+    />
+  </svg>
+);
+const SkillIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    className="h-6 w-6 text-gray-400"
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={2}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+    />
+  </svg>
+);
 const EmptyStateIcon = () => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -28,7 +76,7 @@ export default async function DashboardPage() {
     redirect("/");
   }
 
-  // We will fetch real analysis history here in the future.
+  // Fetch real analysis history here in the future.
   const analysisHistory: any[] = [];
 
   return (
@@ -41,8 +89,45 @@ export default async function DashboardPage() {
         </p>
       </div>
 
+      {/* Stats Section */}
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
+        <div className="flex items-start gap-4 overflow-hidden rounded-lg bg-gray-800/60 px-4 py-5 shadow sm:p-6">
+          <RunIcon />
+          <div>
+            <dt className="truncate text-sm font-medium text-gray-400">
+              Analyses Run
+            </dt>
+            <dd className="mt-1 text-3xl font-semibold tracking-tight text-white">
+              0
+            </dd>
+          </div>
+        </div>
+        <div className="flex items-start gap-4 overflow-hidden rounded-lg bg-gray-800/60 px-4 py-5 shadow sm:p-6">
+          <OpportunityIcon />
+          <div>
+            <dt className="truncate text-sm font-medium text-gray-400">
+              Opportunities Found
+            </dt>
+            <dd className="mt-1 text-3xl font-semibold tracking-tight text-white">
+              0
+            </dd>
+          </div>
+        </div>
+        <div className="flex items-start gap-4 overflow-hidden rounded-lg bg-gray-800/60 px-4 py-5 shadow sm:p-6">
+          <SkillIcon />
+          <div>
+            <dt className="truncate text-sm font-medium text-gray-400">
+              Skills Improved
+            </dt>
+            <dd className="mt-1 text-3xl font-semibold tracking-tight text-white">
+              0
+            </dd>
+          </div>
+        </div>
+      </div>
+
       {/* Start New Analysis Section */}
-      <div className="rounded-lg border border-purple-500/30 bg-gray-800/50 p-8 shadow-xl">
+      <div className="mt-12 rounded-lg border border-purple-500/30 bg-gray-800/50 p-8 shadow-xl">
         <h2 className="text-2xl font-semibold">Start a New Analysis</h2>
         <p className="mt-2 text-gray-400">
           Enter the URL of a public GitHub repository to get started.
@@ -65,7 +150,7 @@ export default async function DashboardPage() {
               <EmptyStateIcon />
               <h3 className="mt-4 text-lg font-semibold">No Analyses Yet</h3>
               <p className="mt-1 text-sm text-gray-400">
-                Start a new analysis to see your history here.
+                Start your first analysis to see your history here.
               </p>
             </div>
           )}
