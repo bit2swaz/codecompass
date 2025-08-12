@@ -306,13 +306,8 @@ export default function LandingPage({ session }: { session: any }) {
         </div>
       </section>
 
-      {/* Separator Line */}
-      <div className="container mx-auto">
-        <div className="border-t border-gray-800"></div>
-      </div>
-
       {/* Final CTA */}
-      <section className="py-24">
+      <section className="border-t border-gray-800 bg-gray-900/50 py-24">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
             Ready to Elevate Your Skills?
