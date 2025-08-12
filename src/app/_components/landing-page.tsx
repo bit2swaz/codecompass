@@ -282,7 +282,7 @@ export default function LandingPage({ session }: { session: any }) {
                 key={testimonial.name}
                 className="flex flex-col rounded-xl border border-gray-800 bg-gray-900 p-8"
                 initial={{ opacity: 0, y: 30 }}
-                whileInView="visible"
+                whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5 }}
               >
