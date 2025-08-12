@@ -1,14 +1,11 @@
 "use client";
 
+import { useParams } from "next/navigation";
 import { api } from "~/trpc/react";
 import InsightCard from "~/app/_components/insight-card";
 
-// Define the props type directly for the page component
-type AnalysisPageProps = {
-  params: { id: string };
-};
-
-export default function AnalysisPage({ params }: AnalysisPageProps) {
+export default function AnalysisPage() {
+  const params = useParams<{ id: string }>();
   const { data: analysis, error } = api.analysis.getAnalysisById.useQuery(
     { id: params.id },
     {
