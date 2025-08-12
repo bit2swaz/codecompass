@@ -3,6 +3,7 @@
 import { api } from "~/trpc/react";
 import InsightCard from "~/app/_components/insight-card";
 
+// Define the props type directly for the page component
 type AnalysisPageProps = {
   params: { id: string };
 };
@@ -24,6 +25,7 @@ export default function AnalysisPage({ params }: AnalysisPageProps) {
     );
   }
 
+  // Define a type for our results for type safety
   type Insight = {
     title: string;
     problem: string;
@@ -42,7 +44,6 @@ export default function AnalysisPage({ params }: AnalysisPageProps) {
       </div>
 
       <div className="mx-auto mt-8 max-w-4xl">
-        {/* === NEW "PENDING" STATE UI === */}
         {(!analysis || analysis.status === "PENDING") && (
           <div className="flex flex-col items-center justify-center gap-6 rounded-lg bg-gray-800 p-8">
             <svg
