@@ -7,21 +7,18 @@ import { Fragment } from "react";
 import { Menu, Transition } from "@headlessui/react";
 import { motion } from "framer-motion";
 
-// Helper function to combine class names
 function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(" ");
 }
 
-export default function Navbar() {
+export default function Header() {
   const { data: session } = useSession();
 
-  // Define the navigation items
   const navItems = [
     { name: "Home", href: "/" },
     { name: "Features", href: "/#features" },
     { name: "Pricing", href: "/#pricing" },
-    // The Dashboard link will only be shown if the user is logged in
-    ...(session?.user ? [{ name: "Dashboard", href: "/dashboard" }] : []),
+    { name: "Dashboard", href: "/dashboard" },
   ];
 
   return (
@@ -77,7 +74,6 @@ export default function Navbar() {
                 leaveTo="transform opacity-0 scale-95"
               >
                 <Menu.Items className="ring-opacity-5 absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-gray-800 py-1 shadow-lg ring-1 ring-black focus:outline-none">
-                  {/* "Your Dashboard" link is removed from here */}
                   <Menu.Item>
                     {({ active }) => (
                       <span
