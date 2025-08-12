@@ -3,7 +3,8 @@
 "use client";
 
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+import { useState } from "react";
 
 // SVG Icon Components
 const ConnectIcon = () => (
@@ -54,8 +55,26 @@ const GrowIcon = () => (
     />
   </svg>
 );
+const IdeIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    className="h-8 w-8 text-purple-400"
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={2}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"
+    />
+  </svg>
+);
 
 export default function LandingPage({ session }: { session: any }) {
+  const [billingCycle, setBillingCycle] = useState("monthly");
+
   const featureVariants = {
     hidden: { opacity: 0, y: 30 },
     visible: { opacity: 1, y: 0 },
@@ -72,8 +91,11 @@ export default function LandingPage({ session }: { session: any }) {
           className="container mx-auto px-4"
         >
           <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl md:text-7xl">
-            Stop Guessing.{" "}
-            <span className="text-purple-400">Start Growing.</span>
+            Your Code is Smart.
+            <br />
+            <span className="text-purple-400">
+              Your Learning Path Should Be, Too.
+            </span>
           </h1>
           <p className="mx-auto mt-6 max-w-3xl text-lg text-gray-300 md:text-xl">
             CodeCompass is your AI-powered mentor, turning your own code into a
@@ -107,45 +129,55 @@ export default function LandingPage({ session }: { session: any }) {
           <p className="mx-auto mt-4 max-w-2xl text-lg text-gray-400">
             Our platform is designed to integrate seamlessly into your workflow.
           </p>
-          <div className="mt-16 grid grid-cols-1 gap-8 md:grid-cols-3">
+          <div className="mt-16 grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">
             {[
               {
                 icon: <ConnectIcon />,
                 title: "Deep Code Analysis",
-                text: "Connect your GitHub account and our AI performs a deep, read-only analysis of your repositories to understand your unique coding style.",
+                text: "Connect GitHub to perform a deep, read-only analysis of your repositories to understand your unique coding style.",
               },
               {
                 icon: <IdentifyIcon />,
                 title: "Personalized Gap Detection",
-                text: "We don't just find linting errors. We identify conceptual gaps, architectural anti-patterns, and areas for growth.",
+                text: "We identify conceptual gaps and architectural anti-patterns, not just simple linting errors.",
               },
               {
                 icon: <GrowIcon />,
                 title: "Actionable Learning Paths",
-                text: "Receive a tailored learning path with articles, videos, and project-based challenges to master new skills effectively.",
+                text: "Receive a tailored path with articles, videos, and challenges to master new skills effectively.",
+              },
+              {
+                icon: <IdeIcon />,
+                title: "IDE Integration",
+                text: "Get real-time feedback and suggestions directly in your code editor with our VS Code extension. (Coming Soon)",
               },
             ].map((feature, i) => (
               <motion.div
                 key={feature.title}
-                className="flex flex-col items-start rounded-xl border border-gray-800 bg-gray-900 p-8"
+                className="flex flex-col items-center rounded-xl border border-gray-800 bg-gray-900 p-8 text-center"
                 variants={featureVariants}
                 initial="hidden"
                 whileInView="visible"
                 viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: i * 0.15 }}
+                transition={{ duration: 0.5, delay: i * 0.1 }}
+                whileHover={{
+                  y: -10,
+                  boxShadow:
+                    "0 20px 25px -5px rgba(168, 85, 247, 0.1), 0 10px 10px -5px rgba(168, 85, 247, 0.04)",
+                }}
               >
                 <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-purple-900/50">
                   {feature.icon}
                 </div>
                 <h3 className="text-xl font-semibold">{feature.title}</h3>
-                <p className="mt-4 text-gray-400">{feature.text}</p>
+                <p className="mt-4 text-sm text-gray-400">{feature.text}</p>
               </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Pricing Section (Placeholder) */}
+      {/* Pricing Section */}
       <section id="pricing" className="py-24">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
@@ -155,41 +187,67 @@ export default function LandingPage({ session }: { session: any }) {
             Choose the plan that&apos;s right for you. Get started for free.
           </p>
           <div className="mt-16 flex justify-center">
-            <div className="rounded-full bg-gray-800 p-1.5">
-              <button className="rounded-full bg-purple-600 px-6 py-2 text-sm font-semibold">
+            <div className="flex rounded-full bg-gray-800 p-1.5">
+              <button
+                onClick={() => setBillingCycle("monthly")}
+                className={`rounded-full px-6 py-2 text-sm font-semibold transition-colors ${billingCycle === "monthly" ? "bg-purple-600 text-white" : "text-gray-400 hover:text-white"}`}
+              >
                 Monthly
               </button>
               <button
-                className="rounded-full px-6 py-2 text-sm font-semibold text-gray-400"
-                disabled
+                onClick={() => setBillingCycle("yearly")}
+                className={`rounded-full px-6 py-2 text-sm font-semibold transition-colors ${billingCycle === "yearly" ? "bg-purple-600 text-white" : "text-gray-400 hover:text-white"}`}
               >
                 Yearly (Save 20%)
               </button>
             </div>
           </div>
           <div className="mx-auto mt-10 max-w-md">
-            <div className="rounded-xl border border-purple-500/50 bg-gray-900 p-8 shadow-2xl shadow-purple-900/20">
-              <h3 className="text-2xl font-semibold">Pro Plan</h3>
-              <p className="mt-4 text-gray-400">
-                Unlock your full potential with unlimited analyses, private
-                repos, and advanced insights.
-              </p>
-              <p className="mt-8 text-5xl font-extrabold">
-                $15{" "}
-                <span className="text-lg font-medium text-gray-400">
-                  / month
-                </span>
-              </p>
-              <button
-                className="mt-8 w-full rounded-lg bg-purple-600 py-3 font-semibold transition hover:bg-purple-500"
-                disabled
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={billingCycle}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.25 }}
+                className="rounded-xl border border-purple-500/50 bg-gray-900 p-8 shadow-2xl shadow-purple-900/20"
               >
-                Coming Soon
-              </button>
-            </div>
+                <h3 className="text-2xl font-semibold">Pro Plan</h3>
+                <p className="mt-4 text-gray-400">
+                  Unlock your full potential with unlimited analyses, private
+                  repos, and advanced insights.
+                </p>
+                {billingCycle === "monthly" ? (
+                  <p className="mt-8 text-5xl font-extrabold">
+                    $15{" "}
+                    <span className="text-lg font-medium text-gray-400">
+                      / month
+                    </span>
+                  </p>
+                ) : (
+                  <p className="mt-8 text-5xl font-extrabold">
+                    $144{" "}
+                    <span className="text-lg font-medium text-gray-400">
+                      / year
+                    </span>
+                  </p>
+                )}
+                <button
+                  className="mt-8 w-full rounded-lg bg-purple-600 py-3 font-semibold transition hover:bg-purple-500"
+                  disabled
+                >
+                  Coming Soon
+                </button>
+              </motion.div>
+            </AnimatePresence>
           </div>
         </div>
       </section>
+
+      {/* Separator Line */}
+      <div className="container mx-auto">
+        <div className="border-t border-gray-800"></div>
+      </div>
 
       {/* Final CTA */}
       <section className="py-24">
