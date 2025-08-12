@@ -9,7 +9,7 @@ import { motion } from "framer-motion";
 const ConnectIcon = () => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
-    className="h-10 w-10 text-purple-400"
+    className="h-8 w-8 text-purple-400"
     fill="none"
     viewBox="0 0 24 24"
     stroke="currentColor"
@@ -25,7 +25,7 @@ const ConnectIcon = () => (
 const IdentifyIcon = () => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
-    className="h-10 w-10 text-purple-400"
+    className="h-8 w-8 text-purple-400"
     fill="none"
     viewBox="0 0 24 24"
     stroke="currentColor"
@@ -41,7 +41,7 @@ const IdentifyIcon = () => (
 const GrowIcon = () => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
-    className="h-10 w-10 text-purple-400"
+    className="h-8 w-8 text-purple-400"
     fill="none"
     viewBox="0 0 24 24"
     stroke="currentColor"
@@ -57,85 +57,87 @@ const GrowIcon = () => (
 
 export default function LandingPage({ session }: { session: any }) {
   const featureVariants = {
-    hidden: { opacity: 0, y: 20 },
+    hidden: { opacity: 0, y: 30 },
     visible: { opacity: 1, y: 0 },
   };
 
   return (
     <div className="w-full text-white">
       {/* Hero Section */}
-      <section className="py-20 text-center md:py-32">
+      <section className="py-24 text-center md:py-40">
         <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
+          initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5 }}
-          className="container mx-auto"
+          className="container mx-auto px-4"
         >
-          <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl md:text-6xl">
-            Your Code is Smart.
-            <br />
-            <span className="text-purple-400">
-              Your Learning Path Should Be, Too.
-            </span>
+          <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl md:text-7xl">
+            Stop Guessing.{" "}
+            <span className="text-purple-400">Start Growing.</span>
           </h1>
           <p className="mx-auto mt-6 max-w-3xl text-lg text-gray-300 md:text-xl">
-            Stop guessing what to learn next. CodeCompass analyzes your GitHub
-            projects to create a personalized curriculum that closes your
-            real-world skill gaps.
+            CodeCompass is your AI-powered mentor, turning your own code into a
+            personalized curriculum. Find your blind spots and master the skills
+            you need to excel.
           </p>
           <motion.div
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="mt-8 inline-block"
+            className="mt-10 inline-block"
           >
             <Link
               href={session?.user ? "/dashboard" : "/api/auth/signin"}
-              className="rounded-full bg-purple-600 px-10 py-4 font-semibold no-underline shadow-lg shadow-purple-600/20 transition"
+              className="rounded-full bg-purple-600 px-10 py-4 font-semibold no-underline shadow-lg shadow-purple-600/30 transition hover:bg-purple-500"
             >
-              {session?.user ? "Go to Your Dashboard" : "Get Started for Free"}
+              {session?.user ? "Go to Your Dashboard" : "Start For Free"}
             </Link>
           </motion.div>
         </motion.div>
       </section>
 
       {/* Features Section */}
-      <section className="border-y border-gray-800 bg-gray-900/50 py-24">
-        <div className="container mx-auto text-center">
-          <h2 className="text-3xl font-bold tracking-tight">How It Works</h2>
+      <section
+        id="features"
+        className="border-y border-gray-800 bg-gray-900/50 py-24"
+      >
+        <div className="container mx-auto px-4 text-center">
+          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
+            A Smarter Way to Upskill
+          </h2>
           <p className="mx-auto mt-4 max-w-2xl text-lg text-gray-400">
-            A simple yet powerful workflow to accelerate your growth.
+            Our platform is designed to integrate seamlessly into your workflow.
           </p>
-          <div className="mt-16 grid grid-cols-1 gap-12 md:grid-cols-3">
+          <div className="mt-16 grid grid-cols-1 gap-8 md:grid-cols-3">
             {[
               {
                 icon: <ConnectIcon />,
-                title: "1. Connect & Analyze",
-                text: "Securely connect your GitHub account. CodeCompass performs a deep, read-only analysis of your repositories.",
+                title: "Deep Code Analysis",
+                text: "Connect your GitHub account and our AI performs a deep, read-only analysis of your repositories to understand your unique coding style.",
               },
               {
                 icon: <IdentifyIcon />,
-                title: "2. Identify Gaps",
-                text: "Our AI engine identifies anti-patterns, security risks, and areas where new technologies could improve your code.",
+                title: "Personalized Gap Detection",
+                text: "We don't just find linting errors. We identify conceptual gaps, architectural anti-patterns, and areas for growth.",
               },
               {
                 icon: <GrowIcon />,
-                title: "3. Learn & Grow",
-                text: "Receive a hyper-personalized learning path with articles, videos, and project-based challenges to fill your knowledge gaps.",
+                title: "Actionable Learning Paths",
+                text: "Receive a tailored learning path with articles, videos, and project-based challenges to master new skills effectively.",
               },
             ].map((feature, i) => (
               <motion.div
                 key={feature.title}
-                className="flex flex-col items-center rounded-lg bg-gray-800 p-8"
+                className="flex flex-col items-start rounded-xl border border-gray-800 bg-gray-900 p-8"
                 variants={featureVariants}
                 initial="hidden"
                 whileInView="visible"
                 viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: i * 0.1 }}
+                transition={{ duration: 0.5, delay: i * 0.15 }}
               >
-                <div className="mb-4">{feature.icon}</div>
-                <h3 className="text-xl font-semibold text-purple-400">
-                  {feature.title}
-                </h3>
+                <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-purple-900/50">
+                  {feature.icon}
+                </div>
+                <h3 className="text-xl font-semibold">{feature.title}</h3>
                 <p className="mt-4 text-gray-400">{feature.text}</p>
               </motion.div>
             ))}
@@ -143,28 +145,74 @@ export default function LandingPage({ session }: { session: any }) {
         </div>
       </section>
 
-      {/* Testimonials Section */}
-      <section className="py-24">
-        <div className="container mx-auto text-center">
-          <h2 className="text-3xl font-bold tracking-tight">
-            Built for the Modern Developer
+      {/* Pricing Section (Placeholder) */}
+      <section id="pricing" className="py-24">
+        <div className="container mx-auto px-4 text-center">
+          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
+            Simple, Transparent Pricing
           </h2>
-          <div className="mx-auto mt-12 max-w-4xl">
-            <div className="relative rounded-lg bg-gray-900 p-8 shadow-2xl">
-              <div className="absolute top-4 left-4 text-6xl font-bold text-purple-500/20">
-                “
-              </div>
-              <p className="relative z-10 text-xl text-gray-300 italic">
-                &quot;CodeCompass found three major performance issues in my
-                side project that I had completely missed. The learning path it
-                generated was spot on. It feels like having a senior dev
-                reviewing my code 24/7.&quot;
-              </p>
-              <p className="mt-6 font-semibold text-purple-400">
-                - Brodie C., Full-Stack Dev
-              </p>
+          <p className="mx-auto mt-4 max-w-2xl text-lg text-gray-400">
+            Choose the plan that&apos;s right for you. Get started for free.
+          </p>
+          <div className="mt-16 flex justify-center">
+            <div className="rounded-full bg-gray-800 p-1.5">
+              <button className="rounded-full bg-purple-600 px-6 py-2 text-sm font-semibold">
+                Monthly
+              </button>
+              <button
+                className="rounded-full px-6 py-2 text-sm font-semibold text-gray-400"
+                disabled
+              >
+                Yearly (Save 20%)
+              </button>
             </div>
           </div>
+          <div className="mx-auto mt-10 max-w-md">
+            <div className="rounded-xl border border-purple-500/50 bg-gray-900 p-8 shadow-2xl shadow-purple-900/20">
+              <h3 className="text-2xl font-semibold">Pro Plan</h3>
+              <p className="mt-4 text-gray-400">
+                Unlock your full potential with unlimited analyses, private
+                repos, and advanced insights.
+              </p>
+              <p className="mt-8 text-5xl font-extrabold">
+                $15{" "}
+                <span className="text-lg font-medium text-gray-400">
+                  / month
+                </span>
+              </p>
+              <button
+                className="mt-8 w-full rounded-lg bg-purple-600 py-3 font-semibold transition hover:bg-purple-500"
+                disabled
+              >
+                Coming Soon
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Final CTA */}
+      <section className="py-24">
+        <div className="container mx-auto px-4 text-center">
+          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
+            Ready to Elevate Your Skills?
+          </h2>
+          <p className="mx-auto mt-4 max-w-2xl text-lg text-gray-400">
+            Stop the endless tutorial cycle. Get a learning path that&apos;s as
+            unique as your codebase.
+          </p>
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="mt-10 inline-block"
+          >
+            <Link
+              href={session?.user ? "/dashboard" : "/api/auth/signin"}
+              className="rounded-full bg-purple-600 px-10 py-4 font-semibold no-underline shadow-lg shadow-purple-600/30 transition hover:bg-purple-500"
+            >
+              Start Your First Analysis
+            </Link>
+          </motion.div>
         </div>
       </section>
     </div>
