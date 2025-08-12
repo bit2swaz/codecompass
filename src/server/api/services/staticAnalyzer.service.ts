@@ -5,8 +5,8 @@
 import { promises as fs, statSync } from "fs";
 import path from "path";
 import * as babelParser from "@babel/parser";
-import traverse from "@babel/traverse"; // 1. Import traverse
-import { type NodePath } from "@babel/traverse"; // 2. Import types
+import traverse from "@babel/traverse";
+import { type NodePath } from "@babel/traverse";
 import { type JSXElement } from "@babel/types";
 
 // A simple regex to find strings that look like keys/secrets
