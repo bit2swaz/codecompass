@@ -3,10 +3,9 @@
 import { api } from "~/trpc/react";
 import InsightCard from "~/app/_components/insight-card";
 
+// Define the props type directly
 type AnalysisPageProps = {
-  params: {
-    id: string;
-  };
+  params: { id: string };
 };
 
 export default function AnalysisPage({ params }: AnalysisPageProps) {
