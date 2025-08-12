@@ -15,11 +15,13 @@ function classNames(...classes: string[]) {
 export default function Navbar() {
   const { data: session } = useSession();
 
+  // Define the navigation items
   const navItems = [
-    { name: "Features", href: "#" },
-    { name: "Pricing", href: "#", disabled: true },
-    { name: "Docs", href: "#", disabled: true },
-    { name: "Blog", href: "#", disabled: true },
+    { name: "Home", href: "/" },
+    { name: "Features", href: "/#features" },
+    { name: "Pricing", href: "/#pricing" },
+    // The Dashboard link will only be shown if the user is logged in
+    ...(session?.user ? [{ name: "Dashboard", href: "/dashboard" }] : []),
   ];
 
   return (
@@ -36,19 +38,12 @@ export default function Navbar() {
         </div>
 
         {/* Center: Navigation Links */}
-        <div className="hidden flex-1 items-center justify-center gap-6 md:flex">
+        <div className="hidden flex-1 items-center justify-center gap-8 md:flex">
           {navItems.map((item) => (
             <Link
               key={item.name}
-              href={item.disabled ? "" : item.href}
-              className={classNames(
-                item.disabled
-                  ? "cursor-not-allowed text-gray-500"
-                  : "text-gray-300 transition-colors hover:text-white",
-                "text-sm font-medium",
-              )}
-              title={item.disabled ? "Coming Soon!" : ""}
-              onClick={(e) => item.disabled && e.preventDefault()}
+              href={item.href}
+              className="text-sm font-medium text-gray-300 transition-colors hover:text-white"
             >
               {item.name}
             </Link>
@@ -82,19 +77,7 @@ export default function Navbar() {
                 leaveTo="transform opacity-0 scale-95"
               >
                 <Menu.Items className="ring-opacity-5 absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-gray-800 py-1 shadow-lg ring-1 ring-black focus:outline-none">
-                  <Menu.Item>
-                    {({ active }) => (
-                      <Link
-                        href="/dashboard"
-                        className={classNames(
-                          active ? "bg-gray-700" : "",
-                          "block px-4 py-2 text-sm text-white",
-                        )}
-                      >
-                        Your Dashboard
-                      </Link>
-                    )}
-                  </Menu.Item>
+                  {/* "Your Dashboard" link is removed from here */}
                   <Menu.Item>
                     {({ active }) => (
                       <span
