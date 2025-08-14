@@ -19,6 +19,7 @@ model User {
     accounts      Account[]
     sessions      Session[]
     analyses      Analysis[]
+    feedback      Feedback[]
 }
 
 model Account {
@@ -74,4 +75,6 @@ model Feedback {
     createdAt  DateTime @default(now())
     analysisId String
     wasHelpful Boolean
+    userId     String
+    user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
