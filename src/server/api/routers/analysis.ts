@@ -67,7 +67,6 @@ export const analysisRouter = createTRPCRouter({
           };
         }
 
-        // For all other errors, mark as FAILED
         await db.analysis.update({
           where: { id: analysisRecord.id },
           data: { status: "FAILED" },
@@ -105,7 +104,6 @@ export const analysisRouter = createTRPCRouter({
   deleteAnalysis: protectedProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
-      // Ensure the analysis belongs to the user before deleting
       const analysis = await db.analysis.findFirst({
         where: { id: input.id, userId: ctx.session.user.id },
       });
