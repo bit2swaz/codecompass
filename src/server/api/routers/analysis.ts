@@ -62,7 +62,7 @@ export const analysisRouter = createTRPCRouter({
       const analysis = await db.analysis.findFirst({
         where: {
           id: input.id,
-          userId: ctx.session.user.id, // Ensure user can only see their own analysis
+          userId: ctx.session.user.id,
         },
       });
 
@@ -72,4 +72,15 @@ export const analysisRouter = createTRPCRouter({
 
       return analysis;
     }),
+
+  getAllAnalyses: protectedProcedure.query(async ({ ctx }) => {
+    return await db.analysis.findMany({
+      where: {
+        userId: ctx.session.user.id,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+  }),
 });
