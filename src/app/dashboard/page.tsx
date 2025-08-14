@@ -2,6 +2,7 @@
 import { api } from "~/trpc/server";
 import Link from "next/link";
 import AnalysisForm from "../_components/analysis-form";
+import InfoBanner from "../_components/info-banner";
 
 // SVG Icons
 const LoginIcon = () => (
@@ -128,7 +129,6 @@ export default async function DashboardPage() {
   }
 
   const analysisHistory = await api.analysis.getAllAnalyses();
-
   const analysesRun = analysisHistory.length;
   const opportunitiesFound = analysisHistory
     .filter((a) => a.status === "COMPLETED" && Array.isArray(a.results))
@@ -142,6 +142,8 @@ export default async function DashboardPage() {
           Welcome back, {session.user.name}.
         </p>
       </div>
+
+      <InfoBanner />
 
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
         <div className="flex items-start gap-4 overflow-hidden rounded-lg bg-gray-800/60 px-4 py-5 shadow sm:p-6">
