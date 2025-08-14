@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useParams } from "next/navigation";
@@ -23,14 +26,15 @@ export default function AnalysisPage() {
     );
   }
 
-  // Define a type for our results for type safety
+  // Define a type for our successful results
   type Insight = {
     title: string;
     problem: string;
     solution: string;
   };
 
-  const results = analysis?.results as Insight[] | null;
+  // Use 'any' to safely check for our custom error structure
+  const results = analysis?.results as any;
 
   return (
     <div className="container mx-auto mt-16 text-white">
@@ -76,8 +80,20 @@ export default function AnalysisPage() {
 
         {analysis?.status === "COMPLETED" && (
           <div>
-            {results && results.length > 0 ? (
-              results.map((insight, index) => (
+            {/* --- NEW BLOCK FOR PRIVATE REPO --- */}
+            {results?.error === "PRIVATE_REPO" ? (
+              <div className="rounded-lg border border-yellow-700 bg-yellow-900/50 p-8 text-center">
+                <h2 className="text-2xl font-semibold text-yellow-400">
+                  Private Repository Detected
+                </h2>
+                <p className="mt-2 text-yellow-300">
+                  Analysis of private repositories is coming soon in a future
+                  update! For now, please analyze a public repository.
+                </p>
+              </div>
+            ) : // --- Existing logic for successful analysis ---
+            results && results.length > 0 ? (
+              (results as Insight[]).map((insight, index) => (
                 <InsightCard key={index} insight={insight} />
               ))
             ) : (
@@ -86,7 +102,7 @@ export default function AnalysisPage() {
               </p>
             )}
 
-            {/* Add the feedback component here */}
+            {/* The Feedback component remains here */}
             <Feedback analysisId={analysis.id} />
           </div>
         )}
