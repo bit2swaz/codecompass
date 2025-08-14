@@ -1,6 +1,6 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-redundant-type-constituents */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -9,11 +9,13 @@ import path from "path";
 import * as babelParser from "@babel/parser";
 import traverse from "@babel/traverse";
 import { type NodePath } from "@babel/traverse";
-import { type JSXElement, type VariableDeclarator } from "@babel/types";
+import { type VariableDeclarator } from "@babel/types";
 
 // More forgiving regex to find variable names that look like secrets
 const SENSITIVE_VARIABLE_NAME_REGEX = /key|secret|token|password/i;
-const SENSITIVE_VALUE_REGEX = /[A-Za-z0-9]{20,}/;
+// A regex to find strings that are long and have a mix of characters, typical of API keys
+const SENSITIVE_VALUE_REGEX =
+  /(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])[a-zA-Z0-9]{20,}/;
 
 export class StaticAnalyzerService {
   public static async analyzeRepo(repoPath: string): Promise<any[]> {
@@ -60,7 +62,7 @@ export class StaticAnalyzerService {
       let passesProps = false;
 
       traverse(ast, {
-        // Check if the component receives props
+        // Check if the component receives props in its function signature
         FunctionDeclaration(path) {
           if (path.node.params.some((p) => (p as any).name === "props"))
             hasProps = true;
@@ -69,7 +71,7 @@ export class StaticAnalyzerService {
           if (path.node.params.some((p) => (p as any).name === "props"))
             hasProps = true;
         },
-        // Check if it passes props down
+        // Check if it passes a property from `props` down to a child component
         JSXAttribute(path) {
           if (path.get("value").isJSXExpressionContainer()) {
             const expression = path.get("value.expression");
@@ -83,11 +85,12 @@ export class StaticAnalyzerService {
         },
       });
 
+      // If a component both receives props and passes them down, it's a candidate
       if (hasProps && passesProps) {
         return {
           type: "PROP_DRILLING",
           file: filePath,
-          line: 1, // AST line numbers are complex, so we use a placeholder
+          line: 1, // AST line numbers are complex, so we use a placeholder for the MVP
           recommendation:
             "Consider using Context API or a state management library.",
         };
@@ -107,7 +110,6 @@ export class StaticAnalyzerService {
         sourceType: "module",
         plugins: ["jsx", "typescript"],
       });
-
       let foundSecret: any = null;
 
       // Traverse the AST to find variable declarations
@@ -118,7 +120,7 @@ export class StaticAnalyzerService {
 
           // Check if the variable name looks sensitive
           if (SENSITIVE_VARIABLE_NAME_REGEX.test(varName)) {
-            // Check if the value is a long string literal
+            // Check if the value is a string literal that looks like a secret
             if (
               varValueNode &&
               varValueNode.type === "StringLiteral" &&
