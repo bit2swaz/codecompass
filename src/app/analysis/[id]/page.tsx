@@ -4,6 +4,7 @@
 "use client";
 
 import { useParams } from "next/navigation";
+import Link from "next/link";
 import { api } from "~/trpc/react";
 import InsightCard from "~/app/_components/insight-card";
 import Feedback from "~/app/_components/feedback";
@@ -26,19 +27,23 @@ export default function AnalysisPage() {
     );
   }
 
-  // Define a type for our successful results
   type Insight = {
     title: string;
     problem: string;
     solution: string;
   };
 
-  // Use 'any' to safely check for our custom error structure
   const results = analysis?.results as any;
 
   return (
     <div className="container mx-auto mt-16 text-white">
       <div className="text-center">
+        <Link
+          href="/dashboard"
+          className="mb-4 inline-block text-sm text-purple-400 hover:text-purple-300"
+        >
+          &larr; Back to Dashboard
+        </Link>
         <h1 className="text-4xl font-bold">Analysis Results</h1>
         <p className="text-lg text-gray-400">
           For: <span className="font-mono">{analysis?.repoUrl}</span>
@@ -80,7 +85,6 @@ export default function AnalysisPage() {
 
         {analysis?.status === "COMPLETED" && (
           <div>
-            {/* --- NEW BLOCK FOR PRIVATE REPO --- */}
             {results?.error === "PRIVATE_REPO" ? (
               <div className="rounded-lg border border-yellow-700 bg-yellow-900/50 p-8 text-center">
                 <h2 className="text-2xl font-semibold text-yellow-400">
@@ -91,8 +95,7 @@ export default function AnalysisPage() {
                   update! For now, please analyze a public repository.
                 </p>
               </div>
-            ) : // --- Existing logic for successful analysis ---
-            results && results.length > 0 ? (
+            ) : results && (results as Insight[]).length > 0 ? (
               (results as Insight[]).map((insight, index) => (
                 <InsightCard key={index} insight={insight} />
               ))
@@ -102,7 +105,6 @@ export default function AnalysisPage() {
               </p>
             )}
 
-            {/* The Feedback component remains here */}
             <Feedback analysisId={analysis.id} />
           </div>
         )}
