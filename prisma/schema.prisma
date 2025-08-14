@@ -56,9 +56,10 @@ model Analysis {
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
-    repoUrl String
-    status  AnalysisStatus @default(PENDING)
-    results Json?
+    displayName String?
+    repoUrl     String
+    status      AnalysisStatus @default(PENDING)
+    results     Json?
 
     userId String
     user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)

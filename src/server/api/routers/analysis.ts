@@ -53,7 +53,7 @@ export const analysisRouter = createTRPCRouter({
           await db.analysis.update({
             where: { id: analysisRecord.id },
             data: {
-              status: "COMPLETED", // Mark as completed to show the custom message
+              status: "COMPLETED",
               results: {
                 error: "PRIVATE_REPO",
                 message:
@@ -83,7 +83,6 @@ export const analysisRouter = createTRPCRouter({
       }
     }),
 
-  // getAnalysisById and getAllAnalyses remain the same
   getAnalysisById: protectedProcedure
     .input(z.object({ id: z.string() }))
     .query(async ({ ctx, input }) => {
@@ -103,4 +102,42 @@ export const analysisRouter = createTRPCRouter({
       orderBy: { createdAt: "desc" },
     });
   }),
+
+  deleteAnalysis: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      // Ensure the analysis belongs to the user before deleting
+      const analysis = await db.analysis.findFirst({
+        where: { id: input.id, userId: ctx.session.user.id },
+      });
+
+      if (!analysis) {
+        throw new Error(
+          "Analysis not found or you do not have permission to delete it.",
+        );
+      }
+
+      return await db.analysis.delete({
+        where: { id: input.id },
+      });
+    }),
+
+  updateAnalysis: protectedProcedure
+    .input(z.object({ id: z.string(), displayName: z.string().min(1) }))
+    .mutation(async ({ ctx, input }) => {
+      const analysis = await db.analysis.findFirst({
+        where: { id: input.id, userId: ctx.session.user.id },
+      });
+
+      if (!analysis) {
+        throw new Error(
+          "Analysis not found or you do not have permission to update it.",
+        );
+      }
+
+      return await db.analysis.update({
+        where: { id: input.id },
+        data: { displayName: input.displayName },
+      });
+    }),
 });
