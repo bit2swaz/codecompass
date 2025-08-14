@@ -31,6 +31,9 @@ export default function AnalysisPage() {
     title: string;
     problem: string;
     solution: string;
+    file: string;
+    line: number;
+    type: "HARDCODED_SECRET" | "PROP_DRILLING";
   };
 
   const results = analysis?.results as any;
