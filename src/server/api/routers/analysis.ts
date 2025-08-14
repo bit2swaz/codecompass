@@ -42,6 +42,32 @@ export const analysisRouter = createTRPCRouter({
           opportunities: processedInsights,
         };
       } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : "Unknown error";
+
+        // Check if it's a private/not found repo error
+        if (errorMessage.includes("Could not clone the repository")) {
+          // Update the status to COMPLETED but with a specific error result
+          await db.analysis.update({
+            where: { id: analysisRecord.id },
+            data: {
+              status: "COMPLETED",
+              results: {
+                error: "PRIVATE_REPO",
+                message:
+                  "Could not access the repository. Please ensure it is public.",
+              },
+            },
+          });
+          // Return a success response so the user is redirected
+          return {
+            message: "Analysis handled private repository.",
+            analysisId: analysisRecord.id,
+            opportunities: [],
+          };
+        }
+
+        // For all other errors, mark as FAILED
         await db.analysis.update({
           where: { id: analysisRecord.id },
           data: { status: "FAILED" },
