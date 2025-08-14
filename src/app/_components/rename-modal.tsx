@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, Fragment } from "react";
+import { useState, Fragment, useEffect } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 
 type RenameModalProps = {
@@ -20,6 +20,10 @@ export default function RenameModal({
 }: RenameModalProps) {
   const [newName, setNewName] = useState(currentName);
 
+  useEffect(() => {
+    setNewName(currentName);
+  }, [currentName]);
+
   const handleSave = () => {
     if (newName.trim()) {
       onSaveAction(newName.trim());
@@ -28,7 +32,7 @@ export default function RenameModal({
 
   return (
     <Transition appear show={isOpen} as={Fragment}>
-      <Dialog as="div" className="relative z-50" onClose={onCloseAction}>
+      <Dialog as="div" className="relative z-50" onCloseAction={onCloseAction}>
         <Transition.Child
           as={Fragment}
           enter="ease-out duration-300"
