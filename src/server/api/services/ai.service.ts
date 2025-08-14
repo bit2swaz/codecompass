@@ -5,7 +5,6 @@ import {
 } from "@google/generative-ai";
 import { env } from "~/env";
 
-// 1. Update the Opportunity type to include our new type
 type Opportunity = {
   type: "HARDCODED_SECRET" | "PROP_DRILLING";
   file: string;
@@ -31,7 +30,6 @@ export class AiService {
 
     const prompt = this.createPrompt(opportunity);
 
-    // ... same generationConfig and safetySettings ...
     const generationConfig = {
       temperature: 0.3,
       topK: 1,
@@ -54,19 +52,26 @@ export class AiService {
 
     const responseText = result.response.text();
     const jsonString = responseText.replace(/```json|```/g, "").trim();
-    return JSON.parse(jsonString) as object;
+    const parsedJson = JSON.parse(jsonString) as object;
+
+    return { ...parsedJson, type: opportunity.type };
   }
 
-  // 2. Update the createPrompt method to handle different types
   private static createPrompt(opportunity: Opportunity): string {
     const baseInstruction = `
       You are CodeCompass, an expert code reviewer providing helpful feedback to a junior developer.
       An automated scan found the following issue:
       - Issue Type: ${opportunity.type}
       - File: ${opportunity.file}
+      - Line Number: ${opportunity.line}
 
-      Your task is to respond ONLY with a valid JSON object with three keys: "title", "problem", and "solution".
-      Keep the tone encouraging and use an analogy for the "problem" section.
+      Your task is to respond ONLY with a valid JSON object with FOUR keys: "title", "problem", "solution", "file", and "line".
+
+      1.  "title": A short, clear title for this issue.
+      2.  "problem": A simple, one-paragraph explanation of the problem and its impact. Use an encouraging tone and an analogy.
+      3.  "solution": A brief, step-by-step explanation of how to fix this.
+      4.  "file": The exact file path provided above ("${opportunity.file}").
+      5.  "line": The exact line number provided above (${opportunity.line}).
     `;
 
     switch (opportunity.type) {
@@ -75,8 +80,8 @@ export class AiService {
           ${baseInstruction}
           
           For the "title", use "Hardcoded Secret Detected".
-          For the "problem", explain the security risk of storing secrets directly in code. The analogy is leaving your house key under the doormat.
-          For the "solution", explain how to use a '.env' file with 'process.env.VARIABLE_NAME'.
+          For the "problem", explain the security risk of storing secrets in code using a "key under the doormat" analogy.
+          For the "solution", explain how to use a '.env' file.
         `;
 
       case "PROP_DRILLING":
@@ -84,12 +89,11 @@ export class AiService {
           ${baseInstruction}
 
           For the "title", use "Potential Prop Drilling Detected".
-          For the "problem", explain that passing props through many intermediate components can make code hard to maintain. The analogy is like playing a game of telephone where the message can get confusing.
-          For the "solution", briefly recommend using React's Context API or a state management library like Zustand to provide data directly to the components that need it.
+          For the "problem", explain that passing props through many components makes code hard to maintain, using a "game of telephone" analogy.
+          For the "solution", recommend using React's Context API or a state management library like Zustand.
         `;
 
       default:
-        // This will help us catch any unhandled opportunity types
         throw new Error("Unhandled opportunity type for AI prompt generation.");
     }
   }
