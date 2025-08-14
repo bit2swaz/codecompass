@@ -6,10 +6,15 @@ import { api } from "~/trpc/react";
 export default function Feedback({ analysisId }: { analysisId: string }) {
   const [feedbackSent, setFeedbackSent] = useState(false);
 
-  // We'll create this tRPC mutation next
   const sendFeedbackMutation = api.feedback.sendFeedback.useMutation({
     onSuccess: () => {
+      // This function updates the UI by setting the state
       setFeedbackSent(true);
+    },
+    onError: (error) => {
+      // Optional: Handle errors if feedback fails to send
+      console.error("Failed to send feedback:", error);
+      alert("Sorry, we couldn't record your feedback at this time.");
     },
   });
 
