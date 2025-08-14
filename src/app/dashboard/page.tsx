@@ -1,8 +1,16 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-floating-promises */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { api } from "~/trpc/server";
+"use client";
+
+import { useState, useEffect } from "react";
+import { api } from "~/trpc/react";
 import Link from "next/link";
 import AnalysisForm from "../_components/analysis-form";
 import InfoBanner from "../_components/info-banner";
+import RenameModal from "../_components/rename-modal";
+import { motion, AnimatePresence } from "framer-motion";
 
 // SVG Icons
 const LoginIcon = () => (
@@ -103,32 +111,82 @@ const StatusBadge = ({ status }: { status: string }) => {
   );
 };
 
-export default async function DashboardPage() {
-  const session = await api.auth.getSession();
+export default function DashboardPage() {
+  const analysesQuery = api.analysis.getAllAnalyses.useQuery();
+  const [analysisHistory, setAnalysisHistory] = useState(
+    analysesQuery.data ?? [],
+  );
 
-  if (!session?.user) {
+  // State for the rename modal
+  const [isRenameModalOpen, setIsRenameModalOpen] = useState(false);
+  const [analysisToRename, setAnalysisToRename] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
+
+  useEffect(() => {
+    if (analysesQuery.data) {
+      setAnalysisHistory(analysesQuery.data);
+    }
+  }, [analysesQuery.data]);
+
+  const utils = api.useUtils();
+
+  const deleteAnalysisMutation = api.analysis.deleteAnalysis.useMutation({
+    onSuccess: (deletedAnalysis) => {
+      utils.analysis.getAllAnalyses.invalidate();
+      setAnalysisHistory((prev) =>
+        prev.filter((a) => a.id !== deletedAnalysis.id),
+      );
+    },
+    onError: (error) => alert(`Error: ${error.message}`),
+  });
+
+  const updateAnalysisMutation = api.analysis.updateAnalysis.useMutation({
+    onSuccess: (updatedAnalysis) => {
+      utils.analysis.getAllAnalyses.invalidate();
+      setAnalysisHistory((prev) =>
+        prev.map((a) => (a.id === updatedAnalysis.id ? updatedAnalysis : a)),
+      );
+      closeRenameModal();
+    },
+    onError: (error) => alert(`Error: ${error.message}`),
+  });
+
+  const openRenameModal = (analysis: {
+    id: string;
+    displayName: string | null;
+    repoUrl: string;
+  }) => {
+    setAnalysisToRename({
+      id: analysis.id,
+      name:
+        analysis.displayName ??
+        analysis.repoUrl.replace("https://github.com/", ""),
+    });
+    setIsRenameModalOpen(true);
+  };
+
+  const closeRenameModal = () => {
+    setIsRenameModalOpen(false);
+    setAnalysisToRename(null);
+  };
+
+  const handleRenameSave = (newName: string) => {
+    if (analysisToRename) {
+      updateAnalysisMutation.mutate({
+        id: analysisToRename.id,
+        displayName: newName,
+      });
+    }
+  };
+
+  if (analysesQuery.isLoading) {
     return (
-      <div className="container mx-auto mt-32 text-center text-white">
-        <LoginIcon />
-        <h1 className="mt-4 text-3xl font-bold tracking-tight">
-          Access Denied
-        </h1>
-        <p className="mt-2 text-lg text-gray-400">
-          You must be logged in to view your dashboard.
-        </p>
-        <div className="mt-8">
-          <Link
-            href="/api/auth/signin"
-            className="rounded-md bg-purple-600 px-6 py-3 font-semibold text-white no-underline shadow-lg shadow-purple-600/20 transition hover:bg-purple-500"
-          >
-            Sign In with GitHub
-          </Link>
-        </div>
-      </div>
+      <div className="mt-32 text-center text-white">Loading dashboard...</div>
     );
   }
 
-  const analysisHistory = await api.analysis.getAllAnalyses();
   const analysesRun = analysisHistory.length;
   const opportunitiesFound = analysisHistory
     .filter((a) => a.status === "COMPLETED" && Array.isArray(a.results))

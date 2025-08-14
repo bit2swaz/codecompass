@@ -45,7 +45,6 @@ export const analysisRouter = createTRPCRouter({
         const errorMessage =
           error instanceof Error ? error.message.toLowerCase() : "";
 
-        // **FIX:** More robust check for private/not found repository errors
         if (
           errorMessage.includes("authentication failed") ||
           errorMessage.includes("repository not found")
