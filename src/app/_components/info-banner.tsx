@@ -17,7 +17,7 @@ export default function InfoBanner() {
   return (
     <div className="mb-8 rounded-lg border border-yellow-700/50 bg-yellow-900/30 p-4">
       <div className="flex items-center">
-        <div className="flex-shrink-0">
+        <div className="flex-shrink-0 text-yellow-400">
           <InfoIcon />
         </div>
         <div className="ml-3">
