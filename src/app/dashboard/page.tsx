@@ -377,8 +377,8 @@ export default function DashboardPage() {
       {analysisToRename && (
         <RenameModal
           isOpen={isRenameModalOpen}
-          onCloseAction={closeRenameModal}
-          onSaveAction={handleRenameSave}
+          onClose={closeRenameModal}
+          onSave={handleRenameSave}
           currentName={analysisToRename.name}
           isSaving={updateAnalysisMutation.isPending}
         />

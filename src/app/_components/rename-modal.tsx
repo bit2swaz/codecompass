@@ -5,16 +5,16 @@ import { Dialog, Transition } from "@headlessui/react";
 
 type RenameModalProps = {
   isOpen: boolean;
-  onCloseAction: () => void;
-  onSaveAction: (newName: string) => void;
+  onClose: () => void;
+  onSave: (newName: string) => void;
   currentName: string;
   isSaving: boolean;
 };
 
 export default function RenameModal({
   isOpen,
-  onCloseAction,
-  onSaveAction,
+  onClose,
+  onSave,
   currentName,
   isSaving,
 }: RenameModalProps) {
@@ -26,13 +26,14 @@ export default function RenameModal({
 
   const handleSave = () => {
     if (newName.trim()) {
-      onSaveAction(newName.trim());
+      onSave(newName.trim());
     }
   };
 
   return (
     <Transition appear show={isOpen} as={Fragment}>
-      <Dialog as="div" className="relative z-50" onCloseAction={onCloseAction}>
+      {/* **FIX:** The prop is `onClose`, not `onCloseAction` */}
+      <Dialog as="div" className="relative z-50" onClose={onClose}>
         <Transition.Child
           as={Fragment}
           enter="ease-out duration-300"
@@ -76,7 +77,7 @@ export default function RenameModal({
                   <button
                     type="button"
                     className="rounded-md px-4 py-2 text-sm font-medium text-gray-400 hover:text-white"
-                    onClick={onCloseAction}
+                    onClick={onClose}
                   >
                     Cancel
                   </button>
