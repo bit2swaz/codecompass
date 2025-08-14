@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { api } from "~/trpc/server";
-import AnalysisForm from "../_components/analysis-form";
 import Link from "next/link";
+import AnalysisForm from "../_components/analysis-form";
 
 // SVG Icons
 const LoginIcon = () => (
@@ -85,10 +85,26 @@ const SkillIcon = () => (
   </svg>
 );
 
+// Helper component for status badges
+const StatusBadge = ({ status }: { status: string }) => {
+  const baseClasses = "rounded-full px-2.5 py-0.5 text-xs font-medium";
+  const statusClasses = {
+    COMPLETED: "bg-green-500/20 text-green-400",
+    PENDING: "bg-yellow-500/20 text-yellow-400 animate-pulse",
+    FAILED: "bg-red-500/20 text-red-400",
+  };
+  return (
+    <span
+      className={`${baseClasses} ${statusClasses[status as keyof typeof statusClasses] || "bg-gray-500/20 text-gray-400"}`}
+    >
+      {status}
+    </span>
+  );
+};
+
 export default async function DashboardPage() {
   const session = await api.auth.getSession();
 
-  // If user is not logged in, show a special message
   if (!session?.user) {
     return (
       <div className="container mx-auto mt-32 text-center text-white">
@@ -111,10 +127,13 @@ export default async function DashboardPage() {
     );
   }
 
-  // We will fetch real analysis history here in the future.
-  const analysisHistory: any[] = [];
+  const analysisHistory = await api.analysis.getAllAnalyses();
 
-  // If user is logged in, show the full dashboard
+  const analysesRun = analysisHistory.length;
+  const opportunitiesFound = analysisHistory
+    .filter((a) => a.status === "COMPLETED" && Array.isArray(a.results))
+    .reduce((acc, a) => acc + (a.results as any[]).length, 0);
+
   return (
     <div className="container mx-auto mt-8 px-4 text-white">
       <div className="mb-12">
@@ -124,7 +143,6 @@ export default async function DashboardPage() {
         </p>
       </div>
 
-      {/* Stats Section */}
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
         <div className="flex items-start gap-4 overflow-hidden rounded-lg bg-gray-800/60 px-4 py-5 shadow sm:p-6">
           <RunIcon />
@@ -133,7 +151,7 @@ export default async function DashboardPage() {
               Analyses Run
             </dt>
             <dd className="mt-1 text-3xl font-semibold tracking-tight text-white">
-              0
+              {analysesRun}
             </dd>
           </div>
         </div>
@@ -144,7 +162,7 @@ export default async function DashboardPage() {
               Opportunities Found
             </dt>
             <dd className="mt-1 text-3xl font-semibold tracking-tight text-white">
-              0
+              {opportunitiesFound}
             </dd>
           </div>
         </div>
@@ -155,7 +173,7 @@ export default async function DashboardPage() {
               Skills Improved
             </dt>
             <dd className="mt-1 text-3xl font-semibold tracking-tight text-white">
-              0
+              0 <span className="text-sm">(Coming soon)</span>
             </dd>
           </div>
         </div>
@@ -175,8 +193,55 @@ export default async function DashboardPage() {
         <h2 className="mb-6 text-2xl font-semibold">Analysis History</h2>
         <div className="rounded-lg border border-gray-800 bg-gray-900/50">
           {analysisHistory.length > 0 ? (
-            <table className="min-w-full">
-              {/* Table will go here when there's data */}
+            <table className="min-w-full divide-y divide-gray-700">
+              <thead className="bg-gray-800">
+                <tr>
+                  <th
+                    scope="col"
+                    className="py-3.5 pr-3 pl-4 text-left text-sm font-semibold sm:pl-6"
+                  >
+                    Repository
+                  </th>
+                  <th
+                    scope="col"
+                    className="px-3 py-3.5 text-left text-sm font-semibold"
+                  >
+                    Date
+                  </th>
+                  <th
+                    scope="col"
+                    className="px-3 py-3.5 text-left text-sm font-semibold"
+                  >
+                    Status
+                  </th>
+                  <th scope="col" className="relative py-3.5 pr-4 pl-3 sm:pr-6">
+                    <span className="sr-only">View</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-800 bg-gray-900">
+                {analysisHistory.map((analysis) => (
+                  <tr key={analysis.id} className="hover:bg-gray-800/50">
+                    <td className="py-4 pr-3 pl-4 text-sm font-medium whitespace-nowrap sm:pl-6">
+                      {analysis.repoUrl.replace("https://github.com/", "")}
+                    </td>
+                    <td className="px-3 py-4 text-sm whitespace-nowrap text-gray-400">
+                      {analysis.createdAt.toLocaleDateString()}
+                    </td>
+                    <td className="px-3 py-4 text-sm whitespace-nowrap text-gray-400">
+                      <StatusBadge status={analysis.status} />
+                    </td>
+                    <td className="relative py-4 pr-4 pl-3 text-right text-sm font-medium whitespace-nowrap sm:pr-6">
+                      <Link
+                        href={`/analysis/${analysis.id}`}
+                        className="text-purple-400 hover:text-purple-300"
+                      >
+                        View
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
             </table>
           ) : (
             <div className="py-20 text-center">
