@@ -3,6 +3,7 @@
 import { useParams } from "next/navigation";
 import { api } from "~/trpc/react";
 import InsightCard from "~/app/_components/insight-card";
+import Feedback from "~/app/_components/feedback";
 
 export default function AnalysisPage() {
   const params = useParams<{ id: string }>();
@@ -84,6 +85,9 @@ export default function AnalysisPage() {
                 No opportunities for improvement were found. Great job!
               </p>
             )}
+
+            {/* Add the feedback component here */}
+            <Feedback analysisId={analysis.id} />
           </div>
         )}
 
