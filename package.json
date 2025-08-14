@@ -34,6 +34,7 @@
     "@trpc/server": "^11.0.0",
     "@types/babel__parser": "^7.0.0",
     "@types/babel__traverse": "^7.28.0",
+    "@vercel/analytics": "^1.5.0",
     "framer-motion": "^12.23.12",
     "motion": "^12.23.12",
     "next": "^15.2.3",
