@@ -12,11 +12,12 @@ export const feedbackRouter = createTRPCRouter({
         wasHelpful: z.boolean(),
       }),
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ ctx, input }) => {
       await db.feedback.create({
         data: {
           analysisId: input.analysisId,
           wasHelpful: input.wasHelpful,
+          userId: ctx.session.user.id,
         },
       });
       return { success: true };
