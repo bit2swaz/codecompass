@@ -68,3 +68,10 @@ enum AnalysisStatus {
     COMPLETED
     FAILED
 }
+
+model Feedback {
+    id         String   @id @default(cuid())
+    createdAt  DateTime @default(now())
+    analysisId String
+    wasHelpful Boolean
+}
