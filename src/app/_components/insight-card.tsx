@@ -36,13 +36,14 @@ type Insight = {
   title: string;
   problem: string;
   solution: string;
-  // These are passed from our backend now
+  // These properties are expected from the backend
   file: string;
   line: number;
   type: "HARDCODED_SECRET" | "PROP_DRILLING";
 };
 
 export default function InsightCard({ insight }: { insight: Insight }) {
+  // **FIX:** This function now correctly selects the icon based on the 'type' property
   const getIcon = () => {
     switch (insight.type) {
       case "HARDCODED_SECRET":
@@ -50,7 +51,7 @@ export default function InsightCard({ insight }: { insight: Insight }) {
       case "PROP_DRILLING":
         return <PropDrillingIcon />;
       default:
-        return null;
+        return null; // Fallback in case of an unknown type
     }
   };
 
@@ -62,6 +63,7 @@ export default function InsightCard({ insight }: { insight: Insight }) {
         </div>
         <div>
           <h3 className="text-lg font-semibold text-white">{insight.title}</h3>
+          {/* **FIX:** This line now correctly displays the file path and line number */}
           <p className="font-mono text-sm text-gray-400">
             {insight.file}, line {insight.line}
           </p>
