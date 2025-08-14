@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
@@ -8,6 +7,7 @@ import Link from "next/link";
 import { api } from "~/trpc/react";
 import InsightCard from "~/app/_components/insight-card";
 import Feedback from "~/app/_components/feedback";
+import InfoBanner from "~/app/_components/info-banner";
 
 export default function AnalysisPage() {
   const params = useParams<{ id: string }>();
@@ -51,6 +51,7 @@ export default function AnalysisPage() {
       </div>
 
       <div className="mx-auto mt-8 max-w-4xl">
+        <InfoBanner />
         {(!analysis || analysis.status === "PENDING") && (
           <div className="flex flex-col items-center justify-center gap-6 rounded-lg bg-gray-800 p-8">
             <svg
@@ -85,17 +86,7 @@ export default function AnalysisPage() {
 
         {analysis?.status === "COMPLETED" && (
           <div>
-            {results?.error === "PRIVATE_REPO" ? (
-              <div className="rounded-lg border border-yellow-700 bg-yellow-900/50 p-8 text-center">
-                <h2 className="text-2xl font-semibold text-yellow-400">
-                  Private Repository Detected
-                </h2>
-                <p className="mt-2 text-yellow-300">
-                  Analysis of private repositories is coming soon in a future
-                  update! For now, please analyze a public repository.
-                </p>
-              </div>
-            ) : results && (results as Insight[]).length > 0 ? (
+            {results && Array.isArray(results) && results.length > 0 ? (
               (results as Insight[]).map((insight, index) => (
                 <InsightCard key={index} insight={insight} />
               ))
@@ -104,7 +95,6 @@ export default function AnalysisPage() {
                 No opportunities for improvement were found. Great job!
               </p>
             )}
-
             <Feedback analysisId={analysis.id} />
           </div>
         )}
