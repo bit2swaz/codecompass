@@ -43,15 +43,17 @@ export const analysisRouter = createTRPCRouter({
         };
       } catch (error) {
         const errorMessage =
-          error instanceof Error ? error.message : "Unknown error";
+          error instanceof Error ? error.message.toLowerCase() : "";
 
-        // Check if it's a private/not found repo error
-        if (errorMessage.includes("Could not clone the repository")) {
-          // Update the status to COMPLETED but with a specific error result
+        // **FIX:** More robust check for private/not found repository errors
+        if (
+          errorMessage.includes("authentication failed") ||
+          errorMessage.includes("repository not found")
+        ) {
           await db.analysis.update({
             where: { id: analysisRecord.id },
             data: {
-              status: "COMPLETED",
+              status: "COMPLETED", // Mark as completed to show the custom message
               results: {
                 error: "PRIVATE_REPO",
                 message:
@@ -59,7 +61,6 @@ export const analysisRouter = createTRPCRouter({
               },
             },
           });
-          // Return a success response so the user is redirected
           return {
             message: "Analysis handled private repository.",
             analysisId: analysisRecord.id,
@@ -82,6 +83,7 @@ export const analysisRouter = createTRPCRouter({
       }
     }),
 
+  // getAnalysisById and getAllAnalyses remain the same
   getAnalysisById: protectedProcedure
     .input(z.object({ id: z.string() }))
     .query(async ({ ctx, input }) => {
@@ -91,22 +93,14 @@ export const analysisRouter = createTRPCRouter({
           userId: ctx.session.user.id,
         },
       });
-
-      if (!analysis) {
-        throw new Error("Analysis not found");
-      }
-
+      if (!analysis) throw new Error("Analysis not found");
       return analysis;
     }),
 
   getAllAnalyses: protectedProcedure.query(async ({ ctx }) => {
     return await db.analysis.findMany({
-      where: {
-        userId: ctx.session.user.id,
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
+      where: { userId: ctx.session.user.id },
+      orderBy: { createdAt: "desc" },
     });
   }),
 });
