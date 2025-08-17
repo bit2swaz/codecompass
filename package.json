@@ -36,6 +36,7 @@
     "@types/babel__traverse": "^7.28.0",
     "@vercel/analytics": "^1.5.0",
     "framer-motion": "^12.23.12",
+    "isomorphic-git": "^1.33.0",
     "motion": "^12.23.12",
     "next": "^15.2.3",
     "next-auth": "5.0.0-beta.25",
