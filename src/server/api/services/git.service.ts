@@ -1,5 +1,5 @@
 import git from "isomorphic-git";
-import http from "isomorphic-git/http/node"; // This is the corrected import path
+import http from "isomorphic-git/http/node";
 import fs from "fs/promises";
 import path from "path";
 
@@ -20,7 +20,7 @@ export class GitService {
         http,
         dir: tempDir,
         url: repoUrl,
-        singleBranch: true, // Equivalent to --depth 1 for speed
+        singleBranch: true,
         depth: 1,
       });
       console.log("Clone successful.");
