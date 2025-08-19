@@ -43,7 +43,6 @@ type Insight = {
 };
 
 export default function InsightCard({ insight }: { insight: Insight }) {
-  // **FIX:** This function now correctly selects the icon based on the 'type' property
   const getIcon = () => {
     switch (insight.type) {
       case "HARDCODED_SECRET":
@@ -63,7 +62,6 @@ export default function InsightCard({ insight }: { insight: Insight }) {
         </div>
         <div>
           <h3 className="text-lg font-semibold text-white">{insight.title}</h3>
-          {/* **FIX:** This line now correctly displays the file path and line number */}
           <p className="font-mono text-sm text-gray-400">
             {insight.file}, line {insight.line}
           </p>
@@ -78,7 +76,10 @@ export default function InsightCard({ insight }: { insight: Insight }) {
           <h4 className="mb-2 font-semibold text-gray-300">
             The Recommended Solution
           </h4>
-          <p className="text-gray-400">{insight.solution}</p>
+          {/* **FIX:** Added the 'whitespace-pre-line' class */}
+          <p className="whitespace-pre-line text-gray-400">
+            {insight.solution}
+          </p>
         </div>
       </div>
     </div>
