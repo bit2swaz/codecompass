@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-redundant-type-constituents */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
@@ -10,7 +9,12 @@ import path from "path";
 import * as babelParser from "@babel/parser";
 import traverse from "@babel/traverse";
 import { type NodePath } from "@babel/traverse";
-import { type VariableDeclarator } from "@babel/types";
+import {
+  type JSXElement,
+  type VariableDeclarator,
+  type FunctionDeclaration,
+  type ArrowFunctionExpression,
+} from "@babel/types";
 
 const SENSITIVE_VARIABLE_NAME_REGEX = /key|secret|token|password/i;
 const SENSITIVE_VALUE_REGEX =
@@ -60,16 +64,14 @@ export class StaticAnalyzerService {
       let passesProps = false;
 
       const visitor = {
-        // Find function components that receive props
-        FunctionDeclaration(path: NodePath) {
-          // Check for `props` or destructured props like `{ user }`
+        // **FIX:** Use the specific NodePath type for FunctionDeclaration
+        FunctionDeclaration(path: NodePath<FunctionDeclaration>) {
           if (
             path.node.params.some(
-              (p) => p.name === "props" || p.type === "ObjectPattern",
+              (p: any) => p.name === "props" || p.type === "ObjectPattern",
             )
           ) {
             hasProps = true;
-            // Now, traverse *inside* this function to see if props are passed down
             path.traverse({
               JSXAttribute(innerPath) {
                 if (innerPath.get("value").isJSXExpressionContainer()) {
@@ -80,7 +82,6 @@ export class StaticAnalyzerService {
                   ) {
                     passesProps = true;
                   }
-                  // Also check for passing down destructured props
                   if (expr.isIdentifier()) {
                     const binding = path.scope.getBinding(expr.node.name);
                     if (binding?.path.isObjectPattern()) {
@@ -92,10 +93,11 @@ export class StaticAnalyzerService {
             });
           }
         },
-        ArrowFunctionExpression(path: NodePath) {
+        // **FIX:** Use the specific NodePath type for ArrowFunctionExpression
+        ArrowFunctionExpression(path: NodePath<ArrowFunctionExpression>) {
           if (
             path.node.params.some(
-              (p) => p.name === "props" || p.type === "ObjectPattern",
+              (p: any) => p.name === "props" || p.type === "ObjectPattern",
             )
           ) {
             hasProps = true;
