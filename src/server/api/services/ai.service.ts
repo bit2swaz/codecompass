@@ -65,11 +65,11 @@ export class AiService {
       - File: ${opportunity.file}
       - Line Number: ${opportunity.line}
 
-      Your task is to respond ONLY with a valid JSON object with FOUR keys: "title", "problem", "solution", "file", and "line".
+      Your task is to respond ONLY with a valid JSON object with FIVE keys: "title", "problem", "solution", "file", and "line".
 
       1.  "title": A short, clear title for this issue.
       2.  "problem": A simple, one-paragraph explanation of the problem and its impact. Use an encouraging tone and an analogy.
-      3.  "solution": A brief, step-by-step explanation of how to fix this.
+      3.  "solution": A brief, step-by-step explanation of how to fix this. **Each numbered step in the solution must be separated by a newline character (\\n).**
       4.  "file": The exact file path provided above ("${opportunity.file}").
       5.  "line": The exact line number provided above (${opportunity.line}).
     `;
@@ -81,7 +81,7 @@ export class AiService {
           
           For the "title", use "Hardcoded Secret Detected".
           For the "problem", explain the security risk of storing secrets in code using a "key under the doormat" analogy.
-          For the "solution", explain how to use a '.env' file.
+          For the "solution", explain how to use a '.env' file in numbered steps.
         `;
 
       case "PROP_DRILLING":
@@ -90,7 +90,7 @@ export class AiService {
 
           For the "title", use "Potential Prop Drilling Detected".
           For the "problem", explain that passing props through many components makes code hard to maintain, using a "game of telephone" analogy.
-          For the "solution", recommend using React's Context API or a state management library like Zustand.
+          For the "solution", recommend using React's Context API or a state management library like Zustand in numbered steps.
         `;
 
       default:
