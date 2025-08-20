@@ -56,7 +56,7 @@ To get a local copy up and running, follow these simple steps.
 
 1.  **Clone the repo**
     ```sh
-    git clone [https://github.com/bit2swaz/codecompass.git](https://github.com/bit2swaz/codecompass.git)
+    git clone https://github.com/bit2swaz/codecompass.git
     ```
 2.  **Install NPM packages**
     ```sh
