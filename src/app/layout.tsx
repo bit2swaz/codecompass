@@ -6,6 +6,7 @@ import AuthProvider from "./_components/auth-provider";
 import Navbar from "./_components/navbar";
 import Footer from "./_components/footer";
 import ScrollToTopButton from "./_components/scroll-to-top-button";
+import { Analytics } from "@vercel/analytics/react";
 
 export const metadata: Metadata = {
   title: "CodeCompass",
@@ -34,6 +35,7 @@ export default function RootLayout({
             <Footer />
           </TRPCReactProvider>
         </AuthProvider>
+        <Analytics />
       </body>
     </html>
   );
