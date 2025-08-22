@@ -124,7 +124,6 @@ export default function DashboardPage() {
     name: string;
   } | null>(null);
 
-  // **FIX:** This state is now used to connect the selector and the form
   const [selectedRepo, setSelectedRepo] = useState<{
     url: string;
     isPrivate: boolean;
@@ -275,14 +274,12 @@ export default function DashboardPage() {
             <p className="mb-2 text-sm text-gray-400">
               Select a repository from your GitHub account.
             </p>
-            {/* **FIX:** The RepoSelector is now integrated */}
             <RepoSelector
               onSelectRepoAction={(repo) =>
                 setSelectedRepo({ url: repo.url, isPrivate: repo.isPrivate })
               }
             />
             <div className="mt-4">
-              {/* **FIX:** The form now receives props from the selector */}
               <AnalysisForm
                 prefilledUrl={selectedRepo?.url}
                 isPrivateRepo={selectedRepo?.isPrivate ?? false}
