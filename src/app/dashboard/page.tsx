@@ -8,7 +8,7 @@ import Link from "next/link";
 import AnalysisForm from "../_components/analysis-form";
 import InfoBanner from "../_components/info-banner";
 import RenameModal from "../_components/rename-modal";
-import RepoSelector from "../_components/repo-selector"; // Import the new component
+import RepoSelector from "../_components/repo-selector";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSession } from "next-auth/react";
 
