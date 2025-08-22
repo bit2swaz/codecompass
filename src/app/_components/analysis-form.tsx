@@ -8,13 +8,14 @@ import { TRPCClientError } from "@trpc/client";
 
 export default function AnalysisForm({
   prefilledUrl,
+  isPrivateRepoSelected,
 }: {
   prefilledUrl?: string;
+  isPrivateRepoSelected?: boolean;
 }) {
   const [repoUrl, setRepoUrl] = useState("");
   const router = useRouter();
 
-  // This effect listens for changes from the RepoSelector
   useEffect(() => {
     if (prefilledUrl) {
       setRepoUrl(prefilledUrl);
@@ -43,6 +44,10 @@ export default function AnalysisForm({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (isPrivateRepoSelected) {
+      alert("Private repository analysis is a Pro feature, coming soon!");
+      return;
+    }
     try {
       new URL(repoUrl);
       if (!repoUrl.includes("github.com")) {
@@ -70,13 +75,22 @@ export default function AnalysisForm({
           className="flex-grow rounded-md border border-gray-600 bg-gray-700 px-4 py-2 text-white placeholder-gray-500 focus:border-purple-400 focus:ring focus:ring-purple-500/50 focus:outline-none"
           required
         />
-        <button
-          type="submit"
-          disabled={runAnalysisMutation.isPending || !repoUrl}
-          className="rounded-md bg-purple-600 px-6 py-2 font-semibold text-white shadow-lg shadow-purple-600/20 transition hover:bg-purple-500 disabled:cursor-not-allowed disabled:bg-gray-600"
-        >
-          {runAnalysisMutation.isPending ? "Analyzing..." : "Analyze"}
-        </button>
+        <div className="relative">
+          <button
+            type="submit"
+            disabled={
+              runAnalysisMutation.isPending || !repoUrl || isPrivateRepoSelected
+            }
+            className="w-full rounded-md bg-purple-600 px-6 py-2 font-semibold text-white shadow-lg shadow-purple-600/20 transition hover:bg-purple-500 disabled:cursor-not-allowed disabled:bg-gray-600"
+          >
+            {runAnalysisMutation.isPending ? "Analyzing..." : "Analyze"}
+          </button>
+          {isPrivateRepoSelected && (
+            <div className="absolute -top-10 right-0 w-max rounded-md bg-gray-900 px-2 py-1 text-xs text-white">
+              Private repo analysis coming soon!
+            </div>
+          )}
+        </div>
       </form>
     </div>
   );
