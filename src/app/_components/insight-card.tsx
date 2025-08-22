@@ -29,7 +29,6 @@ export default function InsightCard({ insight }: { insight: Insight }) {
     <div className="mb-6 rounded-lg border border-gray-700 bg-gray-800/50 shadow-lg transition-all hover:border-purple-500/50 hover:shadow-purple-900/20">
       <div className="flex items-center gap-4 border-b border-gray-700 p-4">
         <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-gray-700/50">
-          {/* **FIX:** Always use the CodeIcon for a consistent look */}
           <CodeIcon />
         </div>
         <div>
