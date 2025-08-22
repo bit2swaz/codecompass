@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/prefer-regexp-exec */
+/* eslint-disable @typescript-eslint/prefer-optional-chain */
+/* eslint-disable @typescript-eslint/consistent-indexed-object-style */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
@@ -37,11 +40,11 @@ export class AiService {
       temperature: 0.2,
       responseMimeType: "application/json",
     };
-    
+
     try {
       const result = await model.generateContent(prompt);
       const responseText = result.response.text();
-      
+
       let parsedJson: { opportunities: any[] } | null = null;
 
       try {
@@ -50,19 +53,34 @@ export class AiService {
         const jsonMatch = responseText.match(/```json\s*([\s\S]*?)\s*```/);
         if (jsonMatch && jsonMatch[1]) {
           try {
-            parsedJson = JSON.parse(jsonMatch[1].trim()) as { opportunities: any[] };
+            parsedJson = JSON.parse(jsonMatch[1].trim()) as {
+              opportunities: any[];
+            };
           } catch (parseError) {
-            console.error(`AI did not return valid JSON for ${filePath} even after regex extraction:`, responseText);
+            console.error(
+              `AI did not return valid JSON for ${filePath} even after regex extraction:`,
+              responseText,
+            );
             return [];
           }
         } else {
-          console.error(`AI did not return valid JSON for ${filePath}:`, responseText);
+          console.error(
+            `AI did not return valid JSON for ${filePath}:`,
+            responseText,
+          );
           return [];
         }
       }
-      
-      if (parsedJson && parsedJson.opportunities && Array.isArray(parsedJson.opportunities)) {
-        return parsedJson.opportunities.map(opp => ({ ...opp, type: opp.title?.replace(/\s/g, '_').toUpperCase() }));
+
+      if (
+        parsedJson &&
+        parsedJson.opportunities &&
+        Array.isArray(parsedJson.opportunities)
+      ) {
+        return parsedJson.opportunities.map((opp) => ({
+          ...opp,
+          type: opp.title?.replace(/\s/g, "_").toUpperCase(),
+        }));
       }
 
       return [];
@@ -72,16 +90,20 @@ export class AiService {
     }
   }
 
-  private static createPrompt(content: string, filePath: string, language: string): string | null {
+  private static createPrompt(
+    content: string,
+    filePath: string,
+    language: string,
+  ): string | null {
     const languageMap: { [key: string]: string } = {
-        ts: "TypeScript",
-        tsx: "TypeScript/React",
-        js: "JavaScript",
-        jsx: "JavaScript/React",
-        py: "Python",
-        go: "Go",
-        rs: "Rust",
-        java: "Java",
+      ts: "TypeScript",
+      tsx: "TypeScript/React",
+      js: "JavaScript",
+      jsx: "JavaScript/React",
+      py: "Python",
+      go: "Go",
+      rs: "Rust",
+      java: "Java",
     };
 
     const fullLanguageName = languageMap[language];
