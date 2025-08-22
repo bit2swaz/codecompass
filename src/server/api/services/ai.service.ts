@@ -51,7 +51,7 @@ export class AiService {
         if (jsonMatch && jsonMatch[1]) {
           try {
             parsedJson = JSON.parse(jsonMatch[1].trim()) as { opportunities: any[] };
-          } catch (e) {
+          } catch (parseError) {
             console.error(`AI did not return valid JSON for ${filePath} even after regex extraction:`, responseText);
             return [];
           }
@@ -73,50 +73,45 @@ export class AiService {
   }
 
   private static createPrompt(content: string, filePath: string, language: string): string | null {
-    const baseInstruction = `
-      You are CodeCompass, an expert code reviewer. Your task is to analyze the following code snippet and identify potential areas for improvement based on a specific list of rules.
+    const languageMap: { [key: string]: string } = {
+        ts: "TypeScript",
+        tsx: "TypeScript/React",
+        js: "JavaScript",
+        jsx: "JavaScript/React",
+        py: "Python",
+        go: "Go",
+        rs: "Rust",
+        java: "Java",
+    };
 
-      Respond ONLY with a valid JSON object. The JSON object must have a single key: "opportunities". The value should be an array of objects. Each object in the array represents a single opportunity you've found and must have the following FIVE keys: "title", "problem", "solution", "file", and "line".
-
-      - "title": A short, clear title for the issue.
-      - "problem": A simple, one-paragraph explanation of the problem and its impact. Use an encouraging tone and an analogy.
-      - "solution": A brief, step-by-step explanation of how to fix this. Each step must be separated by a newline character (\\n).
-      - "file": The exact file path provided ("${filePath}").
-      - "line": The exact line number where the issue occurs. Be precise.
-
-      **IMPORTANT RULE: Only report an opportunity if you are highly confident it exists in the provided code. If the code does not contain any of the specified issues, you MUST return an empty array: {"opportunities": []}. Do not suggest improvements for issues that are not present.**
-    `;
-
-    let languageSpecificInstruction = "";
-
-    switch (language) {
-      case "ts":
-      case "tsx":
-      case "js":
-      case "jsx":
-        languageSpecificInstruction = `
-          You are an expert JavaScript/TypeScript developer. Analyze ONLY for these specific issues:
-          1. Hardcoded Secrets: Look for variables named like 'key', 'secret', 'token' with long, hardcoded string values.
-          2. Prop Drilling: In React components, look for components that receive props and pass them down to another component without using them.
-          3. Missing Async/Await Error Handling: Find 'async' functions that contain 'await' calls but are not wrapped in a 'try...catch' block.
-        `;
-        break;
-      
-      case "py":
-        languageSpecificInstruction = `
-          You are an expert Python developer. Analyze ONLY for these specific issues:
-          1. Mutable Default Arguments: Find function definitions that use lists or dictionaries as default arguments.
-          2. Missing 'if __name__ == "__main__":' guard for executable code.
-        `;
-        break;
-      
-      default:
-        return null;
-    }
+    const fullLanguageName = languageMap[language];
+    if (!fullLanguageName) return null; // Skip unsupported languages
 
     return `
-      ${baseInstruction}
-      ${languageSpecificInstruction}
+      You are CodeCompass, a world-class software architect and staff engineer with 20 years of experience. Your task is to perform a holistic code review on the following file.
+
+      Your analysis should be deep and insightful. Focus on identifying opportunities for improvement in these key areas:
+      1.  **Readability & Maintainability:** Is the code clean, well-structured, and easy to understand? Are there overly complex functions or magic numbers?
+      2.  **Performance:** Are there inefficient loops, unnecessary computations, or patterns that could lead to performance bottlenecks?
+      3.  **Security:** Are there any common security vulnerabilities, such as hardcoded secrets or unsafe operations?
+      4.  **Best Practices:** Does the code adhere to modern best practices and idiomatic conventions for ${fullLanguageName}?
+
+      **IMPORTANT RULES:**
+      - Only report issues that are **actually present** in the code. Do not hallucinate or suggest improvements for problems that don't exist.
+      - Be very precise with the line numbers.
+      - Your tone should be that of a helpful, expert mentor.
+
+      **OUTPUT FORMAT:**
+      Respond ONLY with a valid JSON object. The JSON object must have a single key: "opportunities". The value should be an array of objects.
+      Each object in the array represents a single opportunity you've found and must have the following FIVE keys: "title", "problem", "solution", "file", and "line".
+      
+      - "title": A short, clear title for the issue (e.g., "Hardcoded Secret Detected", "Inefficient Loop for Data Transformation").
+      - "problem": A simple, one-paragraph explanation of the problem and its impact. Use an analogy if possible.
+      - "solution": A brief, step-by-step explanation of how to fix this. Each step must be separated by a newline character (\\n).
+      - "file": The exact file path provided ("${filePath}").
+      - "line": The precise line number where the issue begins.
+
+      If you find no opportunities for improvement, you MUST return an empty array: {"opportunities": []}.
 
       Here is the code from the file "${filePath}":
       \`\`\`${language}
