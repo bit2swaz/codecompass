@@ -12,6 +12,9 @@ export const authConfig: NextAuthConfig = {
     GitHub({
       clientId: env.AUTH_GITHUB_ID,
       clientSecret: env.AUTH_GITHUB_SECRET,
+      authorization: {
+        params: { scope: "read:user repo" },
+      },
     }),
   ],
   callbacks: {
