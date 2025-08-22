@@ -123,7 +123,10 @@ export default function DashboardPage() {
     id: string;
     name: string;
   } | null>(null);
-  const [selectedRepoUrl, setSelectedRepoUrl] = useState("");
+  const [selectedRepo, setSelectedRepo] = useState<{
+    url: string;
+    isPrivate: boolean;
+  } | null>(null);
 
   useEffect(() => {
     if (analysesQuery.data) {
@@ -270,9 +273,16 @@ export default function DashboardPage() {
             <p className="mb-2 text-sm text-gray-400">
               Select a repository from your GitHub account.
             </p>
-            <RepoSelector onSelectRepoAction={setSelectedRepoUrl} />
+            <RepoSelector
+              onSelectRepoAction={(repo) =>
+                setSelectedRepo({ url: repo.url, isPrivate: repo.isPrivate })
+              }
+            />
             <div className="mt-4">
-              <AnalysisForm prefilledUrl={selectedRepoUrl} />
+              <AnalysisForm
+                prefilledUrl={selectedRepo?.url}
+                isPrivateRepoSelected={selectedRepo?.isPrivate}
+              />
             </div>
           </div>
         </div>
