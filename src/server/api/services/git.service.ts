@@ -34,12 +34,15 @@ const IGNORE_LIST = new Set([
 
 export class GitService {
   /**
-   * Clones a public repository to a temporary local directory using a pure JS Git implementation.
+   * Clones a repository, using an access token if provided for private repos.
    * @param repoUrl The URL of the repository to clone.
+   * @param accessToken The user's GitHub OAuth access token.
    * @returns The file path to the cloned repository.
    */
-  public static async cloneRepo(repoUrl: string): Promise<string> {
-    // Create a unique temporary directory for this clone
+  public static async cloneRepo(
+    repoUrl: string,
+    accessToken?: string | null,
+  ): Promise<string> {
     const tempDir = await fs.mkdtemp(path.join("/tmp", "codecompass-"));
     console.log(`Cloning ${repoUrl} into ${tempDir}`);
 
@@ -51,16 +54,18 @@ export class GitService {
         url: repoUrl,
         singleBranch: true,
         depth: 1,
+        // --- NEW: Add authentication headers if a token is provided ---
+        headers: {
+          ...(accessToken ? { Authorization: `token ${accessToken}` } : {}),
+        },
       });
       console.log("Clone successful.");
       return tempDir;
     } catch (error) {
       console.error("Failed to clone repository:", error);
-      // Cleanup the failed attempt
       await this.cleanup(tempDir);
-      // Throw a consistent error message
       throw new Error(
-        "Could not clone the repository. Please ensure the URL is correct and the repository is public.",
+        "Could not clone the repository. Please ensure the URL is correct and the repository is public, or that you have granted access to private repositories.",
       );
     }
   }
