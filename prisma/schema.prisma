@@ -10,16 +10,23 @@ datasource db {
     url      = env("POSTGRES_URL_NON_POOLING")
 }
 
+enum SubscriptionStatus {
+    FREE
+    PRO
+}
+
 model User {
-    id            String     @id @default(cuid())
-    name          String?
-    email         String?    @unique
-    emailVerified DateTime?
-    image         String?
-    accounts      Account[]
-    sessions      Session[]
-    analyses      Analysis[]
-    feedback      Feedback[]
+    id                 String             @id @default(cuid())
+    name               String?
+    email              String?            @unique
+    emailVerified      DateTime?
+    image              String?
+    accounts           Account[]
+    sessions           Session[]
+    analyses           Analysis[]
+    feedback           Feedback[]
+    subscriptionStatus SubscriptionStatus @default(FREE)
+    razorpayCustomerId String?            @unique
 }
 
 model Account {
