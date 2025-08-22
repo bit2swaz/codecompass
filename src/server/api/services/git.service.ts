@@ -3,33 +3,44 @@ import http from "isomorphic-git/http/node";
 import fs from "fs/promises";
 import path from "path";
 
-// A list of common source code file extensions
 const SOURCE_CODE_EXTENSIONS = new Set([
   ".js",
   ".jsx",
   ".ts",
-  ".tsx", // JavaScript/TypeScript
-  ".py", // Python
-  ".go", // Go
-  ".rs", // Rust
-  ".java", // Java
-  ".cs", // C#
+  ".tsx",
+  ".py",
+  ".go",
+  ".rs",
+  ".java",
+  ".cs",
   ".cpp",
   ".c",
-  ".h", // C/C++
-  ".rb", // Ruby
-  ".php", // PHP
-  ".swift", // Swift
-  ".kt", // Kotlin
+  ".h",
+  ".rb",
+  ".php",
+  ".swift",
+  ".kt",
+  ".m",
+  ".html",
+  ".css",
+  ".scss",
+  ".vue",
+  ".svelte",
 ]);
 
-// A list of files/directories to always ignore
 const IGNORE_LIST = new Set([
   "node_modules",
   ".git",
   "package-lock.json",
   "yarn.lock",
   "pnpm-lock.yaml",
+  "next.config.js",
+  "tailwind.config.js",
+  "postcss.config.js",
+  "prettier.config.js",
+  "vite.config.ts",
+  "webpack.config.js",
+  "babel.config.js",
 ]);
 
 export class GitService {
@@ -85,7 +96,9 @@ export class GitService {
 
       if (entry.isDirectory()) {
         allFiles.push(...(await this.getSourceCodeFiles(fullPath)));
-      } else if (SOURCE_CODE_EXTENSIONS.has(path.extname(entry.name))) {
+      } else if (
+        SOURCE_CODE_EXTENSIONS.has(path.extname(entry.name).toLowerCase())
+      ) {
         allFiles.push(fullPath);
       }
     }
