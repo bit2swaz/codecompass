@@ -7,7 +7,7 @@ import { api } from "~/trpc/react";
 // SVG Icons
 const CheckIcon = () => (
   <svg
-    xmlns="http://www.w3.org/2000/svg"
+    xmlns="http://www.w.w3.org/2000/svg"
     className="h-5 w-5"
     viewBox="0 0 20 20"
     fill="currentColor"
