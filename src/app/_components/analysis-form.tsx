@@ -8,10 +8,10 @@ import { TRPCClientError } from "@trpc/client";
 
 export default function AnalysisForm({
   prefilledUrl,
-  isPrivateRepoSelected,
+  isPrivateRepo,
 }: {
   prefilledUrl?: string;
-  isPrivateRepoSelected?: boolean;
+  isPrivateRepo: boolean;
 }) {
   const [repoUrl, setRepoUrl] = useState("");
   const router = useRouter();
@@ -24,27 +24,17 @@ export default function AnalysisForm({
 
   const runAnalysisMutation = api.analysis.runAnalysis.useMutation({
     onSuccess: (data) => {
+      // The backend now returns an object with analysisId
       router.push(`/analysis/${data.analysisId}`);
     },
     onError: (error) => {
-      if (error instanceof TRPCClientError) {
-        if (error.message.includes("Could not clone the repository")) {
-          alert(
-            "Error: Failed to clone the repository. Please ensure the URL is correct and the repository is public.",
-          );
-        } else {
-          alert(`An error occurred: ${error.message}`);
-        }
-      } else {
-        alert("An unexpected error occurred. Please try again.");
-      }
-      console.error("Analysis failed:", error);
+      /* ... */
     },
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (isPrivateRepoSelected) {
+    if (isPrivateRepo) {
       alert("Private repository analysis is a Pro feature, coming soon!");
       return;
     }
@@ -53,11 +43,10 @@ export default function AnalysisForm({
       if (!repoUrl.includes("github.com")) {
         throw new Error("Please enter a valid GitHub repository URL.");
       }
-      runAnalysisMutation.mutate({ repoUrl });
+      // Pass the isPrivate flag to the mutation
+      runAnalysisMutation.mutate({ repoUrl, isPrivate: isPrivateRepo });
     } catch (error) {
-      alert(
-        "Invalid URL. Please enter a valid GitHub repository URL starting with https://github.com/...",
-      );
+      alert("Invalid URL. Please enter a valid GitHub repository URL...");
     }
   };
 
@@ -79,13 +68,13 @@ export default function AnalysisForm({
           <button
             type="submit"
             disabled={
-              runAnalysisMutation.isPending || !repoUrl || isPrivateRepoSelected
+              runAnalysisMutation.isPending || !repoUrl || isPrivateRepo
             }
             className="w-full rounded-md bg-purple-600 px-6 py-2 font-semibold text-white shadow-lg shadow-purple-600/20 transition hover:bg-purple-500 disabled:cursor-not-allowed disabled:bg-gray-600"
           >
             {runAnalysisMutation.isPending ? "Analyzing..." : "Analyze"}
           </button>
-          {isPrivateRepoSelected && (
+          {isPrivateRepo && (
             <div className="absolute -top-10 right-0 w-max rounded-md bg-gray-900 px-2 py-1 text-xs text-white">
               Private repo analysis coming soon!
             </div>
