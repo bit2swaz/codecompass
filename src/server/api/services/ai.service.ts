@@ -44,12 +44,9 @@ export class AiService {
       
       let parsedJson: { opportunities: any[] } | null = null;
 
-      // **FIX:** New, more robust JSON parsing logic
       try {
-        // First, try to parse the text directly
         parsedJson = JSON.parse(responseText) as { opportunities: any[] };
       } catch (e) {
-        // If direct parsing fails, try to extract from a markdown block
         const jsonMatch = responseText.match(/```json\s*([\s\S]*?)\s*```/);
         if (jsonMatch && jsonMatch[1]) {
           try {
@@ -65,7 +62,6 @@ export class AiService {
       }
       
       if (parsedJson && parsedJson.opportunities && Array.isArray(parsedJson.opportunities)) {
-        // Add the 'type' property back to each opportunity for the front-end
         return parsedJson.opportunities.map(opp => ({ ...opp, type: opp.title?.replace(/\s/g, '_').toUpperCase() }));
       }
 
@@ -78,7 +74,7 @@ export class AiService {
 
   private static createPrompt(content: string, filePath: string, language: string): string | null {
     const baseInstruction = `
-      You are CodeCompass, an expert code reviewer. Your task is to analyze the following code snippet and identify potential areas for improvement, focusing on common mistakes made by junior to mid-level developers.
+      You are CodeCompass, an expert code reviewer. Your task is to analyze the following code snippet and identify potential areas for improvement based on a specific list of rules.
 
       Respond ONLY with a valid JSON object. The JSON object must have a single key: "opportunities". The value should be an array of objects. Each object in the array represents a single opportunity you've found and must have the following FIVE keys: "title", "problem", "solution", "file", and "line".
 
@@ -86,9 +82,9 @@ export class AiService {
       - "problem": A simple, one-paragraph explanation of the problem and its impact. Use an encouraging tone and an analogy.
       - "solution": A brief, step-by-step explanation of how to fix this. Each step must be separated by a newline character (\\n).
       - "file": The exact file path provided ("${filePath}").
-      - "line": The approximate line number where the issue occurs.
+      - "line": The exact line number where the issue occurs. Be precise.
 
-      If you find no opportunities, return an empty array: {"opportunities": []}.
+      **IMPORTANT RULE: Only report an opportunity if you are highly confident it exists in the provided code. If the code does not contain any of the specified issues, you MUST return an empty array: {"opportunities": []}. Do not suggest improvements for issues that are not present.**
     `;
 
     let languageSpecificInstruction = "";
@@ -99,7 +95,7 @@ export class AiService {
       case "js":
       case "jsx":
         languageSpecificInstruction = `
-          You are an expert JavaScript/TypeScript developer. Analyze for these specific issues:
+          You are an expert JavaScript/TypeScript developer. Analyze ONLY for these specific issues:
           1. Hardcoded Secrets: Look for variables named like 'key', 'secret', 'token' with long, hardcoded string values.
           2. Prop Drilling: In React components, look for components that receive props and pass them down to another component without using them.
           3. Missing Async/Await Error Handling: Find 'async' functions that contain 'await' calls but are not wrapped in a 'try...catch' block.
@@ -108,7 +104,7 @@ export class AiService {
       
       case "py":
         languageSpecificInstruction = `
-          You are an expert Python developer. Analyze for these specific issues:
+          You are an expert Python developer. Analyze ONLY for these specific issues:
           1. Mutable Default Arguments: Find function definitions that use lists or dictionaries as default arguments.
           2. Missing 'if __name__ == "__main__":' guard for executable code.
         `;
