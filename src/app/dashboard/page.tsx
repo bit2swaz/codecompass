@@ -115,6 +115,7 @@ export default function DashboardPage() {
   const analysesQuery = api.analysis.getAllAnalyses.useQuery(undefined, {
     enabled: !!session?.user,
   });
+
   const [analysisHistory, setAnalysisHistory] = useState(
     analysesQuery.data ?? [],
   );
@@ -281,7 +282,7 @@ export default function DashboardPage() {
             <div className="mt-4">
               <AnalysisForm
                 prefilledUrl={selectedRepo?.url}
-                isPrivateRepoSelected={selectedRepo?.isPrivate}
+                isPrivateRepo={selectedRepo?.isPrivate ?? false}
               />
             </div>
           </div>
