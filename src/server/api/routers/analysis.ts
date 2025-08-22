@@ -1,10 +1,11 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { GitService } from "../services/git.service";
-import { StaticAnalyzerService } from "../services/staticAnalyzer.service";
 import { AiService } from "../services/ai.service";
 import { db } from "~/server/db";
+import fs from "fs/promises";
+import path from "path";
 
 export const analysisRouter = createTRPCRouter({
   runAnalysis: protectedProcedure
@@ -21,12 +22,26 @@ export const analysisRouter = createTRPCRouter({
       let repoPath: string | null = null;
       try {
         repoPath = await GitService.cloneRepo(input.repoUrl);
-        const rawOpportunities =
-          await StaticAnalyzerService.analyzeRepo(repoPath);
 
-        const processedInsights = await Promise.all(
-          rawOpportunities.map((opp) => AiService.generateInsight(opp)),
-        );
+        // 1. Get a list of all relevant source code files
+        const sourceFiles = await GitService.getSourceCodeFiles(repoPath);
+
+        // 2. Read the content of each file and send it to the AI for analysis
+        const analysisPromises = sourceFiles.map(async (filePath) => {
+          const content = await fs.readFile(filePath, "utf-8");
+          const relativePath = path.relative(repoPath!, filePath);
+          const language = path.extname(filePath).slice(1); // e.g., 'js', 'py', 'go'
+
+          // Let the AI find opportunities in the raw code
+          return AiService.generateInsightsForFile(
+            content,
+            relativePath,
+            language,
+          );
+        });
+
+        const insightsNestedArray = await Promise.all(analysisPromises);
+        const processedInsights = insightsNestedArray.flat(); // Flatten the array of arrays
 
         const finalResult = await db.analysis.update({
           where: { id: analysisRecord.id },

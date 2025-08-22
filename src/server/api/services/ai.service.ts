@@ -1,16 +1,15 @@
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
   GoogleGenerativeAI,
   HarmCategory,
   HarmBlockThreshold,
 } from "@google/generative-ai";
 import { env } from "~/env";
-
-type Opportunity = {
-  type: "HARDCODED_SECRET" | "PROP_DRILLING";
-  file: string;
-  line: number;
-  recommendation: string;
-};
 
 export class AiService {
   private static instance: GoogleGenerativeAI;
@@ -22,79 +21,103 @@ export class AiService {
     return this.instance;
   }
 
-  public static async generateInsight(
-    opportunity: Opportunity,
-  ): Promise<object> {
+  public static async generateInsightsForFile(
+    content: string,
+    filePath: string,
+    language: string,
+  ): Promise<object[]> {
     const genAI = this.getInstance();
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-    const prompt = this.createPrompt(opportunity);
+    const prompt = this.createPrompt(content, filePath, language);
+
+    // If no specific prompt exists for this language, don't analyze it.
+    if (!prompt) return [];
 
     const generationConfig = {
-      temperature: 0.3,
-      topK: 1,
-      topP: 1,
-      maxOutputTokens: 2048,
+      temperature: 0.2,
+      // Tell the model to respond with JSON
+      responseMimeType: "application/json",
     };
 
-    const safetySettings = [
-      {
-        category: HarmCategory.HARM_CATEGORY_HARASSMENT,
-        threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
-      },
-    ];
+    try {
+      const result = await model.generateContent(prompt);
+      const responseText = result.response.text();
+      const parsedJson = JSON.parse(responseText) as { opportunities: any[] };
 
-    const result = await model.generateContent({
-      contents: [{ role: "user", parts: [{ text: prompt }] }],
-      generationConfig,
-      safetySettings,
-    });
+      // Add the 'type' property back to each opportunity
+      if (parsedJson.opportunities && Array.isArray(parsedJson.opportunities)) {
+        return parsedJson.opportunities.map((opp) => ({
+          ...opp,
+          type: opp.title?.replace(/\s/g, "_").toUpperCase(),
+        }));
+      }
 
-    const responseText = result.response.text();
-    const jsonString = responseText.replace(/```json|```/g, "").trim();
-    const parsedJson = JSON.parse(jsonString) as object;
-
-    return { ...parsedJson, type: opportunity.type };
+      return [];
+    } catch (error) {
+      console.error(`AI analysis failed for ${filePath}:`, error);
+      return []; // Return an empty array on failure
+    }
   }
 
-  private static createPrompt(opportunity: Opportunity): string {
+  private static createPrompt(
+    content: string,
+    filePath: string,
+    language: string,
+  ): string | null {
     const baseInstruction = `
-      You are CodeCompass, an expert code reviewer providing helpful feedback to a junior developer.
-      An automated scan found the following issue:
-      - Issue Type: ${opportunity.type}
-      - File: ${opportunity.file}
-      - Line Number: ${opportunity.line}
+      You are CodeCompass, an expert code reviewer. Your task is to analyze the following code snippet and identify potential areas for improvement, focusing on common mistakes made by junior to mid-level developers.
 
-      Your task is to respond ONLY with a valid JSON object with FIVE keys: "title", "problem", "solution", "file", and "line".
+      Respond ONLY with a valid JSON object with a single key: "opportunities". The value should be an array of objects. Each object in the array represents a single opportunity you've found and must have the following FIVE keys: "title", "problem", "solution", "file", and "line".
 
-      1.  "title": A short, clear title for this issue.
-      2.  "problem": A simple, one-paragraph explanation of the problem and its impact. Use an encouraging tone and an analogy.
-      3.  "solution": A brief, step-by-step explanation of how to fix this. **Each numbered step in the solution must be separated by a newline character (\\n).**
-      4.  "file": The exact file path provided above ("${opportunity.file}").
-      5.  "line": The exact line number provided above (${opportunity.line}).
+      - "title": A short, clear title for the issue.
+      - "problem": A simple, one-paragraph explanation of the problem and its impact. Use an encouraging tone and an analogy.
+      - "solution": A brief, step-by-step explanation of how to fix this. Each step must be separated by a newline character (\\n).
+      - "file": The exact file path provided ("${filePath}").
+      - "line": The approximate line number where the issue occurs.
+
+      If you find no opportunities, return an empty array: {"opportunities": []}.
     `;
 
-    switch (opportunity.type) {
-      case "HARDCODED_SECRET":
-        return `
-          ${baseInstruction}
-          
-          For the "title", use "Hardcoded Secret Detected".
-          For the "problem", explain the security risk of storing secrets in code using a "key under the doormat" analogy.
-          For the "solution", explain how to use a '.env' file in numbered steps.
-        `;
+    let languageSpecificInstruction = "";
 
-      case "PROP_DRILLING":
-        return `
-          ${baseInstruction}
-
-          For the "title", use "Potential Prop Drilling Detected".
-          For the "problem", explain that passing props through many components makes code hard to maintain, using a "game of telephone" analogy.
-          For the "solution", recommend using React's Context API or a state management library like Zustand in numbered steps.
+    switch (language) {
+      case "ts":
+      case "tsx":
+      case "js":
+      case "jsx":
+        languageSpecificInstruction = `
+          You are an expert JavaScript/TypeScript developer. Analyze for these specific issues:
+          1. Hardcoded Secrets: Look for variables named like 'key', 'secret', 'token' with long, hardcoded string values.
+          2. Prop Drilling: In React components, look for components that receive props and pass them down to another component without using them.
+          3. Missing Async/Await Error Handling: Find 'async' functions that contain 'await' calls but are not wrapped in a 'try...catch' block.
         `;
+        break;
+
+      case "py":
+        languageSpecificInstruction = `
+          You are an expert Python developer. Analyze for these specific issues:
+          1. Mutable Default Arguments: Find function definitions that use lists or dictionaries as default arguments.
+          2. Missing 'if __name__ == "__main__":' guard for executable code.
+          3. Inefficient list comprehensions or loops.
+        `;
+        break;
+
+      // Add more cases for other languages like 'go', 'rs', etc. here in the future.
 
       default:
-        throw new Error("Unhandled opportunity type for AI prompt generation.");
+        // If the language is not supported, return null to skip analysis
+        return null;
     }
+
+    return `
+      ${baseInstruction}
+      ${languageSpecificInstruction}
+
+      Here is the code from the file "${filePath}":
+      \`\`\`${language}
+      ${content}
+      \`\`\`
+    `;
   }
 }
