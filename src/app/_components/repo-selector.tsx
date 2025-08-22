@@ -7,7 +7,7 @@ import { api } from "~/trpc/react";
 // SVG Icons
 const CheckIcon = () => (
   <svg
-    xmlns="http://www.w.w3.org/2000/svg"
+    xmlns="http://www.w3.org/2000/svg"
     className="h-5 w-5"
     viewBox="0 0 20 20"
     fill="currentColor"
@@ -58,7 +58,7 @@ type Repo = {
 export default function RepoSelector({
   onSelectRepoAction,
 }: {
-  onSelectRepoAction: (url: string) => void;
+  onSelectRepoAction: (repo: Repo) => void;
 }) {
   const { data: repos, isLoading, error } = api.github.getUserRepos.useQuery();
   const [selected, setSelected] = useState<Repo | null>(null);
@@ -68,15 +68,12 @@ export default function RepoSelector({
     query === ""
       ? repos
       : repos?.filter((repo) =>
-          repo.name
-            .toLowerCase()
-            .replace(/\s+/g, "")
-            .includes(query.toLowerCase().replace(/\s+/g, "")),
+          repo.name.toLowerCase().includes(query.toLowerCase()),
         );
 
   const handleSelect = (repo: Repo) => {
     setSelected(repo);
-    onSelectRepoAction(repo.url);
+    onSelectRepoAction(repo); // Pass the entire repo object back
   };
 
   if (isLoading)
@@ -95,7 +92,7 @@ export default function RepoSelector({
   return (
     <Combobox value={selected} onChange={handleSelect}>
       <div className="relative">
-        <div className="relative w-full cursor-default overflow-hidden rounded-lg bg-gray-800 text-left shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-white/75 focus-visible:ring-offset-2 focus-visible:ring-offset-purple-300 sm:text-sm">
+        <div className="relative w-full cursor-default overflow-hidden rounded-lg bg-gray-800 text-left shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-white/75 sm:text-sm">
           <Combobox.Input
             className="w-full border-none bg-gray-800 py-3 pr-10 pl-3 text-sm leading-5 text-white focus:ring-0"
             displayValue={(repo: Repo) => repo?.name ?? ""}
@@ -114,43 +111,35 @@ export default function RepoSelector({
           afterLeave={() => setQuery("")}
         >
           <Combobox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-gray-800 py-1 text-base shadow-lg ring-1 ring-black/5 focus:outline-none sm:text-sm">
-            {filteredRepos?.length === 0 && query !== "" ? (
-              <div className="relative cursor-default px-4 py-2 text-gray-400 select-none">
-                Nothing found.
-              </div>
-            ) : (
-              filteredRepos?.map((repo) => (
-                <Combobox.Option
-                  key={repo.id}
-                  className={({ active }) =>
-                    `relative cursor-default py-2 pr-4 pl-10 select-none ${
-                      active ? "bg-purple-600 text-white" : "text-gray-300"
-                    }`
-                  }
-                  value={repo}
-                >
-                  {({ selected, active }) => (
-                    <>
+            {filteredRepos?.map((repo) => (
+              <Combobox.Option
+                key={repo.id}
+                className={({ active }) =>
+                  `relative cursor-default py-2 pr-4 pl-10 select-none ${active ? "bg-purple-600 text-white" : "text-gray-300"}`
+                }
+                value={repo}
+              >
+                {({ selected, active }) => (
+                  <>
+                    <span
+                      className={`block truncate ${selected ? "font-medium" : "font-normal"}`}
+                    >
+                      <div className="flex items-center gap-2">
+                        {repo.isPrivate && <LockClosedIcon />}
+                        {repo.name}
+                      </div>
+                    </span>
+                    {selected ? (
                       <span
-                        className={`block truncate ${selected ? "font-medium" : "font-normal"}`}
+                        className={`absolute inset-y-0 left-0 flex items-center pl-3 ${active ? "text-white" : "text-purple-600"}`}
                       >
-                        <div className="flex items-center gap-2">
-                          {repo.isPrivate && <LockClosedIcon />}
-                          {repo.name}
-                        </div>
+                        <CheckIcon />
                       </span>
-                      {selected ? (
-                        <span
-                          className={`absolute inset-y-0 left-0 flex items-center pl-3 ${active ? "text-white" : "text-purple-600"}`}
-                        >
-                          <CheckIcon />
-                        </span>
-                      ) : null}
-                    </>
-                  )}
-                </Combobox.Option>
-              ))
-            )}
+                    ) : null}
+                  </>
+                )}
+              </Combobox.Option>
+            ))}
           </Combobox.Options>
         </Transition>
       </div>
