@@ -25,6 +25,10 @@ type Insight = {
 };
 
 export default function InsightCard({ insight }: { insight: Insight }) {
+  const solutionSteps = insight.solution
+    .split("\n")
+    .filter((step) => step.trim() !== "");
+
   return (
     <div className="mb-6 rounded-lg border border-gray-700 bg-gray-800/50 shadow-lg transition-all hover:border-purple-500/50 hover:shadow-purple-900/20">
       <div className="flex items-center gap-4 border-b border-gray-700 p-4">
@@ -47,9 +51,11 @@ export default function InsightCard({ insight }: { insight: Insight }) {
           <h4 className="mb-2 font-semibold text-gray-300">
             The Recommended Solution
           </h4>
-          <p className="whitespace-pre-line text-gray-400">
-            {insight.solution}
-          </p>
+          <ol className="list-inside list-decimal space-y-2 text-gray-400">
+            {solutionSteps.map((step, index) => (
+              <li key={index}>{step.replace(/^\d+\.\s*/, "")}</li>
+            ))}
+          </ol>
         </div>
       </div>
     </div>
