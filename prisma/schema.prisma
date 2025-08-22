@@ -26,7 +26,7 @@ model User {
     analyses           Analysis[]
     feedback           Feedback[]
     subscriptionStatus SubscriptionStatus @default(FREE)
-    razorpayCustomerId String?            @unique
+    stripeCustomerId   String?            @unique
 }
 
 model Account {
