@@ -314,6 +314,12 @@ export default function DashboardPage() {
                     </th>
                     <th
                       scope="col"
+                      className="px-3 py-3.5 text-center text-sm font-semibold"
+                    >
+                      Opportunities
+                    </th>
+                    <th
+                      scope="col"
                       className="relative py-3.5 pr-4 pl-3 sm:pr-6"
                     >
                       <span className="sr-only">Actions</span>
@@ -322,58 +328,69 @@ export default function DashboardPage() {
                 </thead>
                 <tbody className="divide-y divide-gray-800 bg-gray-900">
                   <AnimatePresence>
-                    {analysisHistory.map((analysis) => (
-                      <motion.tr
-                        key={analysis.id}
-                        layout
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0, x: -50 }}
-                        className="hover:bg-gray-800/50"
-                      >
-                        <td className="py-4 pr-3 pl-4 text-sm font-medium whitespace-nowrap sm:pl-6">
-                          {analysis.displayName ??
-                            analysis.repoUrl.replace("https://github.com/", "")}
-                        </td>
-                        <td className="px-3 py-4 text-sm whitespace-nowrap text-gray-400">
-                          {new Date(analysis.createdAt).toLocaleDateString()}
-                        </td>
-                        <td className="px-3 py-4 text-sm whitespace-nowrap text-gray-400">
-                          <StatusBadge status={analysis.status} />
-                        </td>
-                        <td className="relative py-4 pr-4 pl-3 text-right text-sm font-medium whitespace-nowrap sm:pr-6">
-                          <Link
-                            href={`/analysis/${analysis.id}`}
-                            className="mr-4 text-purple-400 hover:text-purple-300"
-                          >
-                            View
-                          </Link>
-                          <button
-                            onClick={() => openRenameModal(analysis)}
-                            className="mr-4 text-gray-400 hover:text-white"
-                          >
-                            Edit
-                          </button>
-                          <button
-                            onClick={() => {
-                              if (
-                                confirm(
-                                  "Are you sure you want to delete this analysis? This action cannot be undone.",
-                                )
-                              ) {
-                                deleteAnalysisMutation.mutate({
-                                  id: analysis.id,
-                                });
-                              }
-                            }}
-                            disabled={deleteAnalysisMutation.isPending}
-                            className="text-red-500 hover:text-red-400"
-                          >
-                            Delete
-                          </button>
-                        </td>
-                      </motion.tr>
-                    ))}
+                    {analysisHistory.map((analysis) => {
+                      const opportunityCount = Array.isArray(analysis.results)
+                        ? analysis.results.length
+                        : 0;
+                      return (
+                        <motion.tr
+                          key={analysis.id}
+                          layout
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0, x: -50 }}
+                          className="hover:bg-gray-800/50"
+                        >
+                          <td className="py-4 pr-3 pl-4 text-sm font-medium whitespace-nowrap sm:pl-6">
+                            {analysis.displayName ??
+                              analysis.repoUrl.replace(
+                                "https://github.com/",
+                                "",
+                              )}
+                          </td>
+                          <td className="px-3 py-4 text-sm whitespace-nowrap text-gray-400">
+                            {new Date(analysis.createdAt).toLocaleDateString()}
+                          </td>
+                          <td className="px-3 py-4 text-sm whitespace-nowrap text-gray-400">
+                            <StatusBadge status={analysis.status} />
+                          </td>
+                          <td className="px-3 py-4 text-center text-sm whitespace-nowrap text-gray-400">
+                            {opportunityCount}
+                          </td>
+                          <td className="relative py-4 pr-4 pl-3 text-right text-sm font-medium whitespace-nowrap sm:pr-6">
+                            <Link
+                              href={`/analysis/${analysis.id}`}
+                              className="mr-4 text-purple-400 hover:text-purple-300"
+                            >
+                              View
+                            </Link>
+                            <button
+                              onClick={() => openRenameModal(analysis)}
+                              className="mr-4 text-gray-400 hover:text-white"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => {
+                                if (
+                                  confirm(
+                                    "Are you sure you want to delete this analysis? This action cannot be undone.",
+                                  )
+                                ) {
+                                  deleteAnalysisMutation.mutate({
+                                    id: analysis.id,
+                                  });
+                                }
+                              }}
+                              disabled={deleteAnalysisMutation.isPending}
+                              className="text-red-500 hover:text-red-400"
+                            >
+                              Delete
+                            </button>
+                          </td>
+                        </motion.tr>
+                      );
+                    })}
                   </AnimatePresence>
                 </tbody>
               </table>
