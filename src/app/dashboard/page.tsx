@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { api } from "~/trpc/react";
 import Link from "next/link";
 import AnalysisForm from "../_components/analysis-form";
@@ -123,11 +123,11 @@ export default function DashboardPage() {
     id: string;
     name: string;
   } | null>(null);
-
   const [selectedRepo, setSelectedRepo] = useState<{
     url: string;
     isPrivate: boolean;
   } | null>(null);
+  const [selectedAnalysisIds, setSelectedAnalysisIds] = useState<string[]>([]);
 
   useEffect(() => {
     if (analysesQuery.data) {
@@ -143,6 +143,15 @@ export default function DashboardPage() {
       setAnalysisHistory((prev) =>
         prev.filter((a) => a.id !== deletedAnalysis.id),
       );
+    },
+    onError: (error) => alert(`Error: ${error.message}`),
+  });
+
+  // **NEW:** Mutation for deleting multiple analyses
+  const deleteManyMutation = api.analysis.deleteManyAnalyses.useMutation({
+    onSuccess: () => {
+      utils.analysis.getAllAnalyses.invalidate();
+      setSelectedAnalysisIds([]); // Clear selection after deletion
     },
     onError: (error) => alert(`Error: ${error.message}`),
   });
@@ -186,6 +195,56 @@ export default function DashboardPage() {
       });
     }
   };
+
+  // **NEW:** Handlers for checkbox selection
+  const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.checked) {
+      setSelectedAnalysisIds(analysisHistory.map((a) => a.id));
+    } else {
+      setSelectedAnalysisIds([]);
+    }
+  };
+
+  const handleSelectOne = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    id: string,
+  ) => {
+    if (e.target.checked) {
+      setSelectedAnalysisIds((prev) => [...prev, id]);
+    } else {
+      setSelectedAnalysisIds((prev) =>
+        prev.filter((selectedId) => selectedId !== id),
+      );
+    }
+  };
+
+  const handleDeleteSelected = () => {
+    if (
+      confirm(
+        `Are you sure you want to delete ${selectedAnalysisIds.length} selected analyses?`,
+      )
+    ) {
+      deleteManyMutation.mutate({ ids: selectedAnalysisIds });
+    }
+  };
+
+  const handleDeleteAll = () => {
+    if (
+      confirm(
+        "Are you sure you want to delete ALL analyses? This action cannot be undone.",
+      )
+    ) {
+      const allIds = analysisHistory.map((a) => a.id);
+      deleteManyMutation.mutate({ ids: allIds });
+    }
+  };
+
+  const isAllSelected = useMemo(
+    () =>
+      analysisHistory.length > 0 &&
+      selectedAnalysisIds.length === analysisHistory.length,
+    [selectedAnalysisIds, analysisHistory],
+  );
 
   if (
     status === "loading" ||
@@ -288,15 +347,41 @@ export default function DashboardPage() {
           </div>
         </div>
         <div className="mt-16">
-          <h2 className="mb-6 text-2xl font-semibold">Analysis History</h2>
+          <div className="mb-6 flex items-center justify-between">
+            <h2 className="text-2xl font-semibold">Analysis History</h2>
+            <AnimatePresence>
+              {selectedAnalysisIds.length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, x: 10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 10 }}
+                >
+                  <button
+                    onClick={handleDeleteSelected}
+                    className="rounded-md bg-red-600/80 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-500"
+                  >
+                    Delete Selected ({selectedAnalysisIds.length})
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
           <div className="rounded-lg border border-gray-800 bg-gray-900/50">
             {analysisHistory.length > 0 ? (
               <table className="min-w-full divide-y divide-gray-700">
                 <thead className="bg-gray-800">
                   <tr>
+                    <th scope="col" className="relative px-6 sm:w-12 sm:px-8">
+                      <input
+                        type="checkbox"
+                        className="absolute top-1/2 left-4 -mt-2 h-4 w-4 rounded border-gray-600 bg-gray-700 text-purple-600 focus:ring-purple-600"
+                        checked={isAllSelected}
+                        onChange={handleSelectAll}
+                      />
+                    </th>
                     <th
                       scope="col"
-                      className="py-3.5 pr-3 pl-4 text-left text-sm font-semibold sm:pl-6"
+                      className="py-3.5 pr-3 pl-4 text-left text-sm font-semibold sm:pl-0"
                     >
                       Repository
                     </th>
@@ -339,9 +424,23 @@ export default function DashboardPage() {
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
                           exit={{ opacity: 0, x: -50 }}
-                          className="hover:bg-gray-800/50"
+                          className={
+                            selectedAnalysisIds.includes(analysis.id)
+                              ? "bg-purple-900/20"
+                              : "hover:bg-gray-800/50"
+                          }
                         >
-                          <td className="py-4 pr-3 pl-4 text-sm font-medium whitespace-nowrap sm:pl-6">
+                          <td className="relative px-7 sm:w-12 sm:px-8">
+                            <input
+                              type="checkbox"
+                              className="absolute top-1/2 left-4 -mt-2 h-4 w-4 rounded border-gray-600 bg-gray-700 text-purple-600 focus:ring-purple-600"
+                              checked={selectedAnalysisIds.includes(
+                                analysis.id,
+                              )}
+                              onChange={(e) => handleSelectOne(e, analysis.id)}
+                            />
+                          </td>
+                          <td className="py-4 pr-3 pl-4 text-sm font-medium whitespace-nowrap sm:pl-0">
                             {analysis.displayName ??
                               analysis.repoUrl.replace(
                                 "https://github.com/",
@@ -372,11 +471,7 @@ export default function DashboardPage() {
                             </button>
                             <button
                               onClick={() => {
-                                if (
-                                  confirm(
-                                    "Are you sure you want to delete this analysis? This action cannot be undone.",
-                                  )
-                                ) {
+                                if (confirm("Are you sure?")) {
                                   deleteAnalysisMutation.mutate({
                                     id: analysis.id,
                                   });
@@ -404,6 +499,16 @@ export default function DashboardPage() {
               </div>
             )}
           </div>
+          {analysisHistory.length > 0 && (
+            <div className="mt-4 flex justify-end">
+              <button
+                onClick={handleDeleteAll}
+                className="text-sm text-gray-500 hover:text-red-500"
+              >
+                Delete All Analyses
+              </button>
+            </div>
+          )}
         </div>
       </div>
       {analysisToRename && (
