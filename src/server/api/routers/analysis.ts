@@ -10,28 +10,36 @@ export const analysisRouter = createTRPCRouter({
   runAnalysis: protectedProcedure
     .input(z.object({ repoUrl: z.string().url() }))
     .mutation(async ({ ctx, input }) => {
+      const userId = ctx.session.user.id;
+
+      // 1. Fetch the user's GitHub account to get their access token
+      const account = await db.account.findFirst({
+        where: { userId, provider: "github" },
+      });
+
       const analysisRecord = await db.analysis.create({
         data: {
           repoUrl: input.repoUrl,
           status: "PENDING",
-          userId: ctx.session.user.id,
+          userId: userId,
         },
       });
 
       let repoPath: string | null = null;
       try {
-        repoPath = await GitService.cloneRepo(input.repoUrl);
+        // 2. Pass the access token to the clone service
+        repoPath = await GitService.cloneRepo(
+          input.repoUrl,
+          account?.access_token,
+        );
 
-        // 1. Get a list of all relevant source code files
         const sourceFiles = await GitService.getSourceCodeFiles(repoPath);
 
-        // 2. Read the content of each file and send it to the AI for analysis
         const analysisPromises = sourceFiles.map(async (filePath) => {
           const content = await fs.readFile(filePath, "utf-8");
           const relativePath = path.relative(repoPath!, filePath);
-          const language = path.extname(filePath).slice(1); // e.g., 'js', 'py', 'go'
+          const language = path.extname(filePath).slice(1);
 
-          // Let the AI find opportunities in the raw code
           return AiService.generateInsightsForFile(
             content,
             relativePath,
@@ -40,7 +48,7 @@ export const analysisRouter = createTRPCRouter({
         });
 
         const insightsNestedArray = await Promise.all(analysisPromises);
-        const processedInsights = insightsNestedArray.flat(); // Flatten the array of arrays
+        const processedInsights = insightsNestedArray.flat();
 
         const finalResult = await db.analysis.update({
           where: { id: analysisRecord.id },
