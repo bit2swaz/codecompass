@@ -31,44 +31,56 @@ export class AiService {
 
     const prompt = this.createPrompt(content, filePath, language);
 
-    // If no specific prompt exists for this language, don't analyze it.
     if (!prompt) return [];
 
     const generationConfig = {
       temperature: 0.2,
-      // Tell the model to respond with JSON
       responseMimeType: "application/json",
     };
-
+    
     try {
       const result = await model.generateContent(prompt);
       const responseText = result.response.text();
-      const parsedJson = JSON.parse(responseText) as { opportunities: any[] };
+      
+      let parsedJson: { opportunities: any[] } | null = null;
 
-      // Add the 'type' property back to each opportunity
-      if (parsedJson.opportunities && Array.isArray(parsedJson.opportunities)) {
-        return parsedJson.opportunities.map((opp) => ({
-          ...opp,
-          type: opp.title?.replace(/\s/g, "_").toUpperCase(),
-        }));
+      // **FIX:** New, more robust JSON parsing logic
+      try {
+        // First, try to parse the text directly
+        parsedJson = JSON.parse(responseText) as { opportunities: any[] };
+      } catch (e) {
+        // If direct parsing fails, try to extract from a markdown block
+        const jsonMatch = responseText.match(/```json\s*([\s\S]*?)\s*```/);
+        if (jsonMatch && jsonMatch[1]) {
+          try {
+            parsedJson = JSON.parse(jsonMatch[1].trim()) as { opportunities: any[] };
+          } catch (e) {
+            console.error(`AI did not return valid JSON for ${filePath} even after regex extraction:`, responseText);
+            return [];
+          }
+        } else {
+          console.error(`AI did not return valid JSON for ${filePath}:`, responseText);
+          return [];
+        }
+      }
+      
+      if (parsedJson && parsedJson.opportunities && Array.isArray(parsedJson.opportunities)) {
+        // Add the 'type' property back to each opportunity for the front-end
+        return parsedJson.opportunities.map(opp => ({ ...opp, type: opp.title?.replace(/\s/g, '_').toUpperCase() }));
       }
 
       return [];
     } catch (error) {
       console.error(`AI analysis failed for ${filePath}:`, error);
-      return []; // Return an empty array on failure
+      return [];
     }
   }
 
-  private static createPrompt(
-    content: string,
-    filePath: string,
-    language: string,
-  ): string | null {
+  private static createPrompt(content: string, filePath: string, language: string): string | null {
     const baseInstruction = `
       You are CodeCompass, an expert code reviewer. Your task is to analyze the following code snippet and identify potential areas for improvement, focusing on common mistakes made by junior to mid-level developers.
 
-      Respond ONLY with a valid JSON object with a single key: "opportunities". The value should be an array of objects. Each object in the array represents a single opportunity you've found and must have the following FIVE keys: "title", "problem", "solution", "file", and "line".
+      Respond ONLY with a valid JSON object. The JSON object must have a single key: "opportunities". The value should be an array of objects. Each object in the array represents a single opportunity you've found and must have the following FIVE keys: "title", "problem", "solution", "file", and "line".
 
       - "title": A short, clear title for the issue.
       - "problem": A simple, one-paragraph explanation of the problem and its impact. Use an encouraging tone and an analogy.
@@ -93,20 +105,16 @@ export class AiService {
           3. Missing Async/Await Error Handling: Find 'async' functions that contain 'await' calls but are not wrapped in a 'try...catch' block.
         `;
         break;
-
+      
       case "py":
         languageSpecificInstruction = `
           You are an expert Python developer. Analyze for these specific issues:
           1. Mutable Default Arguments: Find function definitions that use lists or dictionaries as default arguments.
           2. Missing 'if __name__ == "__main__":' guard for executable code.
-          3. Inefficient list comprehensions or loops.
         `;
         break;
-
-      // Add more cases for other languages like 'go', 'rs', etc. here in the future.
-
+      
       default:
-        // If the language is not supported, return null to skip analysis
         return null;
     }
 
