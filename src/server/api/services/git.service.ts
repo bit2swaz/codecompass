@@ -34,9 +34,9 @@ const IGNORE_LIST = new Set([
 
 export class GitService {
   /**
-   * Clones a repository, using an access token if provided for private repos.
+   * Clones a repository, using an access token only if provided.
    * @param repoUrl The URL of the repository to clone.
-   * @param accessToken The user's GitHub OAuth access token.
+   * @param accessToken The user's GitHub OAuth access token (optional).
    * @returns The file path to the cloned repository.
    */
   public static async cloneRepo(
@@ -54,7 +54,6 @@ export class GitService {
         url: repoUrl,
         singleBranch: true,
         depth: 1,
-        // --- NEW: Add authentication headers if a token is provided ---
         headers: {
           ...(accessToken ? { Authorization: `token ${accessToken}` } : {}),
         },
@@ -69,7 +68,6 @@ export class GitService {
       );
     }
   }
-
   /**
    * Gets all relevant source code file paths from a directory.
    * @param dirPath The path to the directory.

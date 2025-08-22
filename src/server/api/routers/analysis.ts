@@ -8,14 +8,28 @@ import path from "path";
 
 export const analysisRouter = createTRPCRouter({
   runAnalysis: protectedProcedure
-    .input(z.object({ repoUrl: z.string().url() }))
+    .input(
+      z.object({
+        repoUrl: z.string().url(),
+        isPrivate: z.boolean(),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
       const userId = ctx.session.user.id;
+      let accessToken: string | null | undefined = null;
 
-      // 1. Fetch the user's GitHub account to get their access token
-      const account = await db.account.findFirst({
-        where: { userId, provider: "github" },
-      });
+      // Only fetch the access token if the repo is private
+      if (input.isPrivate) {
+        const account = await db.account.findFirst({
+          where: { userId, provider: "github" },
+        });
+        accessToken = account?.access_token;
+        if (!accessToken) {
+          throw new Error(
+            "Cannot analyze private repository without a valid GitHub token.",
+          );
+        }
+      }
 
       const analysisRecord = await db.analysis.create({
         data: {
@@ -27,42 +41,27 @@ export const analysisRouter = createTRPCRouter({
 
       let repoPath: string | null = null;
       try {
-        // 2. Pass the access token to the clone service
-        repoPath = await GitService.cloneRepo(
-          input.repoUrl,
-          account?.access_token,
-        );
+        // Pass the token (or null) to the clone service
+        repoPath = await GitService.cloneRepo(input.repoUrl, accessToken);
 
         const sourceFiles = await GitService.getSourceCodeFiles(repoPath);
-
         const analysisPromises = sourceFiles.map(async (filePath) => {
           const content = await fs.readFile(filePath, "utf-8");
           const relativePath = path.relative(repoPath!, filePath);
           const language = path.extname(filePath).slice(1);
-
           return AiService.generateInsightsForFile(
             content,
             relativePath,
             language,
           );
         });
-
         const insightsNestedArray = await Promise.all(analysisPromises);
         const processedInsights = insightsNestedArray.flat();
-
-        const finalResult = await db.analysis.update({
+        await db.analysis.update({
           where: { id: analysisRecord.id },
-          data: {
-            status: "COMPLETED",
-            results: processedInsights,
-          },
+          data: { status: "COMPLETED", results: processedInsights },
         });
-
-        return {
-          message: "Analysis completed successfully!",
-          analysisId: finalResult.id,
-          opportunities: processedInsights,
-        };
+        return { analysisId: analysisRecord.id };
       } catch (error) {
         const errorMessage =
           error instanceof Error ? error.message.toLowerCase() : "";
