@@ -158,4 +158,28 @@ export const analysisRouter = createTRPCRouter({
         data: { displayName: input.displayName },
       });
     }),
+
+  deleteManyAnalyses: protectedProcedure
+    .input(z.object({ ids: z.array(z.string()) }))
+    .mutation(async ({ ctx, input }) => {
+      const analyses = await db.analysis.findMany({
+        where: {
+          id: { in: input.ids },
+          userId: ctx.session.user.id,
+        },
+      });
+
+      if (analyses.length !== input.ids.length) {
+        throw new Error(
+          "One or more analyses were not found or you do not have permission to delete them.",
+        );
+      }
+
+      return await db.analysis.deleteMany({
+        where: {
+          id: { in: input.ids },
+          userId: ctx.session.user.id,
+        },
+      });
+    }),
 });
