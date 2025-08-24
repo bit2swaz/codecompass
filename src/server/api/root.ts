@@ -4,6 +4,7 @@ import { analysisRouter } from "./routers/analysis";
 import { feedbackRouter } from "./routers/feedback";
 import { diagRouter } from "./routers/diag";
 import { githubRouter } from "./routers/github";
+import { vscodeRouter } from "./routers/vscode";
 
 /**
  * This is the primary router for your server.
@@ -16,6 +17,7 @@ export const appRouter = createTRPCRouter({
   feedback: feedbackRouter,
   diag: diagRouter,
   github: githubRouter,
+  vscode: vscodeRouter,
 });
 
 // export type definition of API
