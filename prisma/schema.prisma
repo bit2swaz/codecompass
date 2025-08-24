@@ -27,6 +27,7 @@ model User {
     feedback           Feedback[]
     subscriptionStatus SubscriptionStatus @default(FREE)
     stripeCustomerId   String?            @unique
+    vscodeDevices      VscodeDevice[]
 }
 
 model Account {
@@ -85,4 +86,13 @@ model Feedback {
     wasHelpful Boolean
     userId     String
     user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VscodeDevice {
+    id        String   @id @default(cuid())
+    createdAt DateTime @default(now())
+    deviceId  String   @unique
+    authToken String?
+    userId    String?
+    user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
