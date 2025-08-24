@@ -1,13 +1,12 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { api } from "~/trpc/react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 
-export default function ConnectVscodePage() {
+function ConnectVscodeClient() {
   const searchParams = useSearchParams();
   const deviceId = searchParams.get("deviceId");
   const { data: session, status } = useSession();
@@ -23,7 +22,7 @@ export default function ConnectVscodePage() {
     if (deviceId && session?.user?.id && status === "authenticated") {
       approveDeviceMutation.mutate({ deviceId });
     }
-  }, [deviceId, session, status]);
+  }, [deviceId, session, status, approveDeviceMutation]);
 
   if (status === "loading") {
     return (
@@ -77,5 +76,15 @@ export default function ConnectVscodePage() {
         Please wait while we link your VS Code extension.
       </p>
     </div>
+  );
+}
+
+export default function ConnectVscodePage() {
+  return (
+    <Suspense
+      fallback={<div className="mt-32 text-center text-white">Loading...</div>}
+    >
+      <ConnectVscodeClient />
+    </Suspense>
   );
 }
