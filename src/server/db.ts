@@ -1,9 +1,14 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { PrismaClient } from "@prisma/client";
-
 import { env } from "~/env";
 
 const createPrismaClient = () =>
   new PrismaClient({
+    datasources: {
+      db: {
+        url: env.POSTGRES_PRISMA_URL,
+      },
+    },
     log:
       env.NODE_ENV === "development" ? ["query", "error", "warn"] : ["error"],
   });
