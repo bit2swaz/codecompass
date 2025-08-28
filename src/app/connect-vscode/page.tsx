@@ -1,7 +1,7 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { useEffect, useState, Suspense } from "react";
+import { useEffect, Suspense } from "react";
 import { api } from "~/trpc/react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
@@ -10,26 +10,22 @@ function ConnectVscodeClient() {
   const searchParams = useSearchParams();
   const deviceId = searchParams.get("deviceId");
   const { data: session, status } = useSession();
-  const [error, setError] = useState<string | null>(null);
 
-  const approveDeviceMutation = api.vscode.approveDevice.useMutation({
-    onError: (err) => {
-      setError(err.message);
-    },
-  });
+  const approveDeviceMutation = api.vscode.approveDevice.useMutation();
 
   useEffect(() => {
+    // Only attempt to approve the device once when the session is ready.
     if (deviceId && session?.user?.id && status === "authenticated") {
-      approveDeviceMutation.mutate({ deviceId });
+      if (
+        !approveDeviceMutation.isSuccess &&
+        !approveDeviceMutation.isPending
+      ) {
+        approveDeviceMutation.mutate({ deviceId });
+      }
     }
   }, [deviceId, session, status, approveDeviceMutation]);
 
-  if (status === "loading") {
-    return (
-      <div className="mt-32 text-center text-white">Loading session...</div>
-    );
-  }
-
+  // If the user isn't logged in, prompt them to sign in.
   if (status === "unauthenticated") {
     return (
       <div className="container mx-auto mt-32 text-center text-white">
@@ -39,7 +35,7 @@ function ConnectVscodeClient() {
         </p>
         <div className="mt-8">
           <Link
-            href="/api/auth/signin"
+            href={`/api/auth/signin?callbackUrl=/connect-vscode?deviceId=${deviceId ?? ""}`}
             className="rounded-md bg-purple-600 px-6 py-3 font-semibold text-white"
           >
             Sign In with GitHub
@@ -49,31 +45,19 @@ function ConnectVscodeClient() {
     );
   }
 
-  if (approveDeviceMutation.isSuccess) {
-    return (
-      <div className="mt-32 text-center text-white">
-        <h1 className="text-3xl font-bold text-green-400">Success!</h1>
-        <p className="mt-2 text-lg text-gray-400">
-          You can now close this window and return to VS Code.
-        </p>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="mt-32 text-center text-white">
-        <h1 className="text-3xl font-bold text-red-400">Error</h1>
-        <p className="mt-2 text-lg text-gray-400">{error}</p>
-      </div>
-    );
-  }
-
+  // This is the main view. It shows a consistent message.
+  // The VS Code extension itself will provide the final success/error message.
   return (
     <div className="mt-32 text-center text-white">
-      <h1 className="text-3xl font-bold">Connecting to CodeCompass...</h1>
+      <h1 className="text-3xl font-bold text-green-400">
+        Authentication in Progress
+      </h1>
       <p className="mt-2 text-lg text-gray-400">
-        Please wait while we link your VS Code extension.
+        Your request has been sent. Please return to VS Code to complete the
+        sign-in process.
+      </p>
+      <p className="mt-1 text-sm text-gray-500">
+        You can now close this window.
       </p>
     </div>
   );
