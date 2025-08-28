@@ -7,6 +7,26 @@ import fs from "fs/promises";
 import path from "path";
 
 export const analysisRouter = createTRPCRouter({
+  analyzeFile: protectedProcedure
+    .input(
+      z.object({
+        content: z.string(),
+        filePath: z.string(),
+        language: z.string(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const insights = await AiService.generateInsightsForFile(
+        input.content,
+        input.filePath,
+        input.language,
+      );
+      return insights.map((insight) => ({
+        ...insight,
+        userId: ctx.session.user.id,
+      }));
+    }),
+
   runAnalysis: protectedProcedure
     .input(
       z.object({
