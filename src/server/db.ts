@@ -5,12 +5,19 @@ const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };
 
+const getDbUrl = () => {
+  if (process.env.NODE_ENV === "production") {
+    return process.env.POSTGRES_PRISMA_URL;
+  }
+  return env.POSTGRES_PRISMA_URL;
+};
+
 export const db =
   globalForPrisma.prisma ??
   new PrismaClient({
     datasources: {
       db: {
-        url: env.POSTGRES_PRISMA_URL,
+        url: getDbUrl(),
       },
     },
     log:
